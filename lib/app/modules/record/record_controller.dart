@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/services/cycle_service.dart';
+import '../../data/services/database_service.dart';
 import '../../data/models/models.dart';
 import '../../utils/error_handler.dart';
+import '../../utils/loading_manager.dart';
 
 class RecordController extends GetxController {
   final CycleService _cycleService = Get.find<CycleService>();
+  final DatabaseService _databaseService = Get.find<DatabaseService>();
+  final LoadingManager _loadingManager = LoadingManager();
 
   // 选中的日期
   final selectedDate = DateTime.now().obs;
@@ -193,29 +197,36 @@ class RecordController extends GetxController {
   Future<void> saveRecord() async {
     if (!validateData()) return;
 
-    await _loadingManager
-        .executeWithLoading(() async {
-          // 保存记录到数据库
-          final now = DateTime.now().toIso8601String();
-          await _databaseService.database.rawInsert(
-            'INSERT OR REPLACE INTO daily_records (date, flow_level, pain_level, mood, symptoms, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-              selectedDate.value.toIso8601String().split('T')[0],
-              flowLevel.value,
-              painLevel.value,
-              mood.value,
-              symptoms.join(','),
-              notes.value,
-              now,
-              now,
-            ],
-          );
+    try {
+      isLoading.value = true;
+      final now = DateTime.now();
 
-          ErrorHandler.showSuccess('记录已保存');
-        }, loadingText: '正在保存记录...')
-        .catchError((error) {
-          ErrorHandler.showError('保存记录失败，请稍后重试');
-        });
+      // 检查是否已有该日期的记录
+      final existing = await _databaseService.getDailyRecord(selectedDate.value);
+
+      final record = DailyRecord(
+        id: existing?.id,
+        date: selectedDate.value,
+        isPeriod: existing?.isPeriod ?? false, // 保持现有的经期状态
+        flowLevel: flowLevel.value > 0 ? flowLevel.value : null,
+        painLevel: painLevel.value > 0 ? painLevel.value : null,
+        mood: mood.value > 0 ? mood.value : null,
+        symptoms: symptoms.isNotEmpty ? symptoms.join(',') : null,
+        notes: notes.value.isNotEmpty ? notes.value : null,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      );
+
+      // 使用数据库服务的方法保存记录
+      await _databaseService.upsertDailyRecord(record);
+
+      ErrorHandler.showSuccess('记录已保存');
+    } catch (error) {
+      print('保存记录错误: $error');
+      ErrorHandler.showError('保存记录失败：$error');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   /// 当日期改变时重新加载数据

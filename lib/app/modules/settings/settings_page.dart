@@ -61,14 +61,24 @@ class SettingsPage extends GetView<SettingsController> {
           ),
           ListTile(
             leading: const Icon(Icons.calendar_today),
-            title: const Text('平均周期长度'),
-            subtitle: Obx(() => Text('${controller.averageCycleLength.value}天')),
+            title: Text('average_cycle_length'.tr),
+            subtitle: Obx(
+              () => Text(
+                'cycle_length_days'.trParams({'length': '${controller.averageCycleLength.value}'}),
+              ),
+            ),
             onTap: () => _showCycleLengthDialog(),
           ),
           ListTile(
             leading: const Icon(Icons.water_drop),
-            title: const Text('平均经期长度'),
-            subtitle: Obx(() => Text('${controller.averagePeriodLength.value}天')),
+            title: Text('average_period_length'.tr),
+            subtitle: Obx(
+              () => Text(
+                'period_length_days'.trParams({
+                  'length': '${controller.averagePeriodLength.value}',
+                }),
+              ),
+            ),
             onTap: () => _showPeriodLengthDialog(),
           ),
         ],
@@ -92,7 +102,7 @@ class SettingsPage extends GetView<SettingsController> {
             () => SwitchListTile(
               secondary: const Icon(Icons.notifications),
               title: Text('notifications'.tr),
-              subtitle: const Text('开启推送通知'),
+              subtitle: Text('enable_notifications'.tr),
               value: controller.isNotificationEnabled.value,
               onChanged: (_) => controller.toggleNotification(),
             ),
@@ -100,14 +110,14 @@ class SettingsPage extends GetView<SettingsController> {
           ListTile(
             leading: const Icon(Icons.schedule),
             title: Text('period_reminder'.tr),
-            subtitle: const Text('经期提醒设置'),
-            onTap: () => Get.snackbar('提醒设置', '功能开发中...'),
+            subtitle: Text('period_reminder_desc'.tr),
+            onTap: () => Get.snackbar('reminder_settings'.tr, 'developing'.tr),
           ),
           ListTile(
             leading: const Icon(Icons.favorite),
             title: Text('ovulation_reminder'.tr),
-            subtitle: const Text('排卵期提醒设置'),
-            onTap: () => Get.snackbar('提醒设置', '功能开发中...'),
+            subtitle: Text('ovulation_reminder_desc'.tr),
+            onTap: () => Get.snackbar('reminder_settings'.tr, 'developing'.tr),
           ),
         ],
       ),
@@ -129,25 +139,25 @@ class SettingsPage extends GetView<SettingsController> {
           ListTile(
             leading: const Icon(Icons.file_download),
             title: Text('export_data'.tr),
-            subtitle: const Text('导出数据到文件'),
+            subtitle: Text('export_data_desc'.tr),
             onTap: controller.exportData,
           ),
           ListTile(
             leading: const Icon(Icons.file_upload),
             title: Text('import_data'.tr),
-            subtitle: const Text('从文件导入数据'),
+            subtitle: Text('import_data_desc'.tr),
             onTap: controller.importData,
           ),
           ListTile(
             leading: const Icon(Icons.backup),
             title: Text('backup_data'.tr),
-            subtitle: const Text('备份数据到云端'),
+            subtitle: Text('backup_data_desc'.tr),
             onTap: controller.backupData,
           ),
           ListTile(
             leading: const Icon(Icons.restore),
             title: Text('restore_data'.tr),
-            subtitle: const Text('从云端恢复数据'),
+            subtitle: Text('restore_data_desc'.tr),
             onTap: controller.restoreData,
           ),
         ],
@@ -169,19 +179,19 @@ class SettingsPage extends GetView<SettingsController> {
           ),
           ListTile(
             leading: const Icon(Icons.info),
-            title: const Text('版本信息'),
-            subtitle: const Text('v1.0.0'),
+            title: Text('version_info'.tr),
+            subtitle: Text('version'.trParams({'version': 'v1.0.0'})),
             onTap: () => _showAboutDialog(),
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip),
-            title: const Text('隐私政策'),
-            onTap: () => Get.snackbar('隐私政策', '功能开发中...'),
+            title: Text('privacy_policy_title'.tr),
+            onTap: () => Get.snackbar('privacy_policy_title'.tr, 'developing'.tr),
           ),
           ListTile(
             leading: const Icon(Icons.help),
-            title: const Text('帮助与支持'),
-            onTap: () => Get.snackbar('帮助', '功能开发中...'),
+            title: Text('help_support_title'.tr),
+            onTap: () => Get.snackbar('help'.tr, 'developing'.tr),
           ),
         ],
       ),
@@ -196,7 +206,7 @@ class SettingsPage extends GetView<SettingsController> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('中文'),
+              title: Text('chinese'.tr),
               trailing: Obx(
                 () => controller.selectedLanguage.value == 'zh_CN'
                     ? const Icon(Icons.check, color: Colors.green)
@@ -204,11 +214,10 @@ class SettingsPage extends GetView<SettingsController> {
               ),
               onTap: () {
                 controller.changeLanguage('zh_CN');
-                Get.back();
               },
             ),
             ListTile(
-              title: const Text('English'),
+              title: Text('english'.tr),
               trailing: Obx(
                 () => controller.selectedLanguage.value == 'en_US'
                     ? const Icon(Icons.check, color: Colors.green)
@@ -216,7 +225,6 @@ class SettingsPage extends GetView<SettingsController> {
               ),
               onTap: () {
                 controller.changeLanguage('en_US');
-                Get.back();
               },
             ),
           ],
@@ -229,7 +237,7 @@ class SettingsPage extends GetView<SettingsController> {
   void _showCycleLengthDialog() {
     Get.dialog(
       AlertDialog(
-        title: const Text('设置平均周期长度'),
+        title: Text('set_cycle_length'.tr),
         content: SizedBox(
           width: double.maxFinite,
           height: 400, // 设置固定高度
@@ -239,7 +247,7 @@ class SettingsPage extends GetView<SettingsController> {
               children: List.generate(15, (index) {
                 final length = index + 21; // 21-35天
                 return ListTile(
-                  title: Text('$length天'),
+                  title: Text('cycle_length_days'.trParams({'length': '$length'})),
                   trailing: Obx(
                     () => controller.averageCycleLength.value == length
                         ? const Icon(Icons.check, color: Colors.green)
@@ -262,7 +270,7 @@ class SettingsPage extends GetView<SettingsController> {
   void _showPeriodLengthDialog() {
     Get.dialog(
       AlertDialog(
-        title: const Text('设置平均经期长度'),
+        title: Text('set_period_length'.tr),
         content: SizedBox(
           width: double.maxFinite,
           height: 300, // 设置固定高度
@@ -272,7 +280,7 @@ class SettingsPage extends GetView<SettingsController> {
               children: List.generate(8, (index) {
                 final length = index + 3; // 3-10天
                 return ListTile(
-                  title: Text('$length天'),
+                  title: Text('period_length_days'.trParams({'length': '$length'})),
                   trailing: Obx(
                     () => controller.averagePeriodLength.value == length
                         ? const Icon(Icons.check, color: Colors.green)
@@ -296,15 +304,15 @@ class SettingsPage extends GetView<SettingsController> {
     Get.dialog(
       AlertDialog(
         title: Text('app_name'.tr),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('版本: v1.0.0'),
-            SizedBox(height: 8),
-            Text('一款专业的女性生理期追踪应用'),
-            SizedBox(height: 8),
-            Text('帮助您记录、预测和管理生理周期'),
+            Text('version'.trParams({'version': 'v1.0.0'})),
+            const SizedBox(height: 8),
+            Text('about_app_desc'.tr),
+            const SizedBox(height: 8),
+            Text('about_app_subtitle'.tr),
           ],
         ),
         actions: [TextButton(onPressed: () => Get.back(), child: Text('confirm'.tr))],

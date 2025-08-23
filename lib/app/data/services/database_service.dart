@@ -17,7 +17,14 @@ class DatabaseService extends GetxService {
 
   /// 初始化数据库
   Future<DatabaseService> init() async {
-    _database = await _initDatabase();
+    try {
+      _database = await _initDatabase();
+    } catch (e) {
+      // 如果初始化失败，尝试清理并重新创建数据库
+      print('数据库初始化失败，将重新创建: $e');
+      await _cleanDatabase();
+      _database = await _initDatabase();
+    }
     return this;
   }
 
@@ -25,7 +32,7 @@ class DatabaseService extends GetxService {
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'period_tracker.db');
 
-    return await openDatabase(path, version: 1, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   /// 创建数据库表
@@ -183,7 +190,111 @@ class DatabaseService extends GetxService {
 
   /// 数据库升级
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // 处理数据库升级逻辑
+    if (oldVersion < 2) {
+      // 在 period_records 表中添加 is_predicted 和 ovulation_date 列（如果不存在）
+      try {
+        await db.execute('ALTER TABLE period_records ADD COLUMN is_predicted INTEGER DEFAULT 0');
+      } catch (e) {
+        // 列可能已经存在，忽略错误
+        print('添加 is_predicted 列失败: $e');
+      }
+
+      try {
+        await db.execute('ALTER TABLE period_records ADD COLUMN ovulation_date TEXT');
+      } catch (e) {
+        // 列可能已经存在，忽略错误
+        print('添加 ovulation_date 列失败: $e');
+      }
+    }
+
+    if (oldVersion < 3) {
+      // 检查并添加 daily_records 表的缺失列
+      await _upgradeDailyRecordsTable(db);
+    }
+  }
+
+  /// 升级 daily_records 表
+  Future<void> _upgradeDailyRecordsTable(Database db) async {
+    // 检查表是否存在
+    final result = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='daily_records'",
+    );
+
+    if (result.isEmpty) {
+      // 表不存在，创建它
+      await db.execute('''
+        CREATE TABLE daily_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL UNIQUE,
+          is_period INTEGER DEFAULT 0,
+          flow_level INTEGER,
+          flow_color TEXT,
+          flow_texture TEXT,
+          pain_level INTEGER,
+          pain_locations TEXT,
+          mood INTEGER,
+          symptoms TEXT,
+          notes TEXT,
+          cervical_mucus_type TEXT,
+          cervical_mucus_amount INTEGER,
+          basal_body_temperature REAL,
+          weight REAL,
+          blood_pressure_systolic INTEGER,
+          blood_pressure_diastolic INTEGER,
+          heart_rate INTEGER,
+          water_intake INTEGER,
+          caffeine_intake INTEGER,
+          exercise_type TEXT,
+          exercise_duration INTEGER,
+          exercise_intensity INTEGER,
+          sleep_hours REAL,
+          sleep_quality INTEGER,
+          stress_level INTEGER,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+      return;
+    }
+
+    // 表存在，检查并添加缺失的列
+    final columnsToAdd = [
+      'is_period INTEGER DEFAULT 0',
+      'flow_level INTEGER',
+      'flow_color TEXT',
+      'flow_texture TEXT',
+      'pain_level INTEGER',
+      'pain_locations TEXT',
+      'mood INTEGER',
+      'symptoms TEXT',
+      'notes TEXT',
+      'cervical_mucus_type TEXT',
+      'cervical_mucus_amount INTEGER',
+      'basal_body_temperature REAL',
+      'weight REAL',
+      'blood_pressure_systolic INTEGER',
+      'blood_pressure_diastolic INTEGER',
+      'heart_rate INTEGER',
+      'water_intake INTEGER',
+      'caffeine_intake INTEGER',
+      'exercise_type TEXT',
+      'exercise_duration INTEGER',
+      'exercise_intensity INTEGER',
+      'sleep_hours REAL',
+      'sleep_quality INTEGER',
+      'stress_level INTEGER',
+    ];
+
+    for (final column in columnsToAdd) {
+      final columnName = column.split(' ')[0];
+      try {
+        await db.execute('ALTER TABLE daily_records ADD COLUMN $column');
+        print('成功添加列: $columnName');
+      } catch (e) {
+        // 列可能已经存在或其他错误
+        print('添加列 $columnName 失败: $e');
+      }
+    }
   }
 
   /// 插入默认设置
@@ -256,6 +367,22 @@ class DatabaseService extends GetxService {
     }
   }
 
+  /// 清理数据库（删除数据库文件）
+  Future<void> _cleanDatabase() async {
+    try {
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
+      }
+
+      String path = join(await getDatabasesPath(), 'period_tracker.db');
+      await deleteDatabase(path);
+      print('数据库文件已删除: $path');
+    } catch (e) {
+      print('清理数据库失败: $e');
+    }
+  }
+
   /// 关闭数据库
   Future<void> close() async {
     if (_database != null) {
@@ -319,7 +446,18 @@ class DatabaseService extends GetxService {
 
   /// 插入生理周期记录
   Future<int> insertPeriodRecord(PeriodRecord record) async {
-    return await database.insert('period_records', record.toInsertMap());
+    try {
+      return await database.insert('period_records', record.toInsertMap());
+    } catch (e) {
+      // 如果错误中包含 "no column named"，说明表结构有问题，需要重新创建数据库
+      if (e.toString().contains('no column named')) {
+        print('检测到表结构问题，重新创建数据库...');
+        await _cleanDatabase();
+        _database = await _initDatabase();
+        return await database.insert('period_records', record.toInsertMap());
+      }
+      rethrow;
+    }
   }
 
   /// 更新生理周期记录

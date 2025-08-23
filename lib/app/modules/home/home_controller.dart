@@ -139,16 +139,16 @@ class HomeController extends GetxController {
     final phase = cycleOverview.value?.currentPhase ?? CyclePhase.unknown;
     switch (phase) {
       case CyclePhase.menstrual:
-        return '经期中';
+        return 'menstrual_phase'.tr;
       case CyclePhase.follicular:
-        return '卵泡期';
+        return 'follicular_phase'.tr;
       case CyclePhase.ovulation:
-        return '排卵期';
+        return 'ovulation_phase'.tr;
       case CyclePhase.luteal:
-        return '黄体期';
+        return 'luteal_phase'.tr;
       case CyclePhase.unknown:
       default:
-        return '未知';
+        return 'unknown_phase'.tr;
     }
   }
 
@@ -173,23 +173,27 @@ class HomeController extends GetxController {
   /// 获取周期统计信息
   String get cycleStatsText {
     final overview = cycleOverview.value;
-    if (overview == null) return '数据加载中...';
+    if (overview == null) return 'data_loading'.tr;
 
     final avgCycle = overview.averageCycleLength.toInt();
     final avgPeriod = overview.averagePeriodLength.toInt();
     final totalCycles = overview.totalCycles;
 
-    return '平均周期: $avgCycle天 | 平均经期: $avgPeriod天 | 已记录: $totalCycles个周期';
+    return 'average_cycle_stats'.trParams({
+      'cycle': avgCycle.toString(),
+      'period': avgPeriod.toString(),
+      'total': totalCycles.toString(),
+    });
   }
 
   /// 快速开始经期
   Future<void> quickStartPeriod() async {
     try {
       await _cycleService.startNewPeriod(DateTime.now());
-      Get.snackbar('成功', '经期记录已开始');
+      Get.snackbar('success'.tr, 'period_started'.tr);
       await refreshData();
     } catch (e) {
-      Get.snackbar('错误', '开始经期记录失败: $e');
+      Get.snackbar('error'.tr, '${'error'.tr}: $e');
     }
   }
 
@@ -197,25 +201,26 @@ class HomeController extends GetxController {
   Future<void> quickEndPeriod() async {
     try {
       await _cycleService.endCurrentPeriod(DateTime.now());
-      Get.snackbar('成功', '经期记录已结束');
+      Get.snackbar('success'.tr, 'period_ended'.tr);
+      // 立即刷新数据以更新UI状态
       await refreshData();
     } catch (e) {
-      Get.snackbar('错误', '结束经期记录失败: $e');
+      Get.snackbar('error'.tr, '${'error'.tr}: $e');
     }
   }
 
   /// 快速导航到记录页面
   void navigateToRecord() {
-    Get.toNamed(Routes.record);
+    changeTabIndex(2); // 2是记录页面的索引
   }
 
   /// 快速导航到日历页面
   void navigateToCalendar() {
-    Get.toNamed(Routes.calendar);
+    changeTabIndex(1); // 1是日历页面的索引
   }
 
   /// 快速导航到统计页面
   void navigateToStatistics() {
-    Get.toNamed(Routes.statistics);
+    changeTabIndex(3); // 3是统计页面的索引
   }
 }

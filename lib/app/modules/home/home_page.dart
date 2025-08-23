@@ -87,7 +87,7 @@ class HomePage extends GetView<HomeController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    controller.isOnPeriod ? '当前经期' : '下次经期',
+                    controller.isOnPeriod ? 'current_period'.tr : 'next_period'.tr,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Container(
@@ -117,7 +117,7 @@ class HomePage extends GetView<HomeController> {
                       children: [
                         if (controller.isOnPeriod) ...[
                           Text(
-                            '第${controller.currentCycleDay}天',
+                            'day_x'.trParams({'day': '${controller.currentCycleDay}'}),
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -125,11 +125,14 @@ class HomePage extends GetView<HomeController> {
                             ),
                           ),
                           const SizedBox(height: 5),
-                          Text('经期正在进行中', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                          Text(
+                            'period_in_progress'.tr,
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
                         ] else ...[
                           Text(
                             controller.daysUntilNextPeriod <= 0
-                                ? '今天'
+                                ? 'today'.tr
                                 : DateFormatter.formatCountdown(controller.daysUntilNextPeriod),
                             style: const TextStyle(
                               fontSize: 28,
@@ -139,7 +142,7 @@ class HomePage extends GetView<HomeController> {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            '周期第${controller.currentCycleDay}天',
+                            'cycle_day'.trParams({'day': '${controller.currentCycleDay}'}),
                             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                           ),
                         ],
@@ -176,7 +179,10 @@ class HomePage extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('快速操作', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'quick_actions'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 15),
             Obx(() {
               if (controller.isOnPeriod) {
@@ -187,7 +193,7 @@ class HomePage extends GetView<HomeController> {
                       child: ElevatedButton.icon(
                         onPressed: controller.quickEndPeriod,
                         icon: const Icon(Icons.stop_circle),
-                        label: const Text('结束经期'),
+                        label: Text('end_period'.tr),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
@@ -200,7 +206,7 @@ class HomePage extends GetView<HomeController> {
                       child: OutlinedButton.icon(
                         onPressed: controller.navigateToRecord,
                         icon: const Icon(Icons.edit),
-                        label: const Text('记录症状'),
+                        label: Text('record_symptoms'.tr),
                       ),
                     ),
                   ],
@@ -215,7 +221,7 @@ class HomePage extends GetView<HomeController> {
                           child: ElevatedButton.icon(
                             onPressed: controller.quickStartPeriod,
                             icon: const Icon(Icons.play_circle),
-                            label: const Text('开始经期'),
+                            label: Text('start_period'.tr),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryColor,
                               foregroundColor: Colors.white,
@@ -228,7 +234,7 @@ class HomePage extends GetView<HomeController> {
                           child: OutlinedButton.icon(
                             onPressed: controller.navigateToRecord,
                             icon: const Icon(Icons.edit),
-                            label: const Text('记录数据'),
+                            label: Text('record_data'.tr),
                           ),
                         ),
                       ],
@@ -239,19 +245,19 @@ class HomePage extends GetView<HomeController> {
                       children: [
                         _buildQuickActionButton(
                           icon: Icons.mood,
-                          label: '记录情绪',
+                          label: 'record_mood'.tr,
                           color: AppTheme.moodHappy,
                           onTap: controller.navigateToRecord,
                         ),
                         _buildQuickActionButton(
                           icon: Icons.healing,
-                          label: '记录症状',
+                          label: 'record_symptoms'.tr,
                           color: AppTheme.secondaryColor,
                           onTap: controller.navigateToRecord,
                         ),
                         _buildQuickActionButton(
                           icon: Icons.calendar_view_day,
-                          label: '查看日历',
+                          label: 'view_calendar'.tr,
                           color: AppTheme.primaryColor,
                           onTap: controller.navigateToCalendar,
                         ),
@@ -302,7 +308,10 @@ class HomePage extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('今日状态', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'today_status'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 15),
             Obx(() {
               final statusChips = <Widget>[];
@@ -364,8 +373,14 @@ class HomePage extends GetView<HomeController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('周期统计', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                TextButton(onPressed: controller.navigateToStatistics, child: const Text('查看详情')),
+                Text(
+                  'cycle_stats'.tr,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: controller.navigateToStatistics,
+                  child: Text('view_details'.tr),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -389,7 +404,10 @@ class HomePage extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('健康提示', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'health_tips'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 15),
             Obx(() {
               String tip = '记得保持健康的生活方式。';

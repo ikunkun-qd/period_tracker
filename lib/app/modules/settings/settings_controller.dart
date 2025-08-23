@@ -81,7 +81,15 @@ class SettingsController extends GetxController {
     final locale = languageCode == 'zh_CN' ? const Locale('zh', 'CN') : const Locale('en', 'US');
     Get.updateLocale(locale);
     _saveSetting('language', languageCode);
-    Get.snackbar('成功', '语言已更改');
+
+    // 关闭语言选择对话框
+    Get.back();
+
+    // 显示成功提示
+    Get.snackbar(
+      'success'.tr,
+      languageCode == 'zh_CN' ? '语言已切换为中文' : 'Language changed to English',
+    );
   }
 
   /// 更新周期长度
