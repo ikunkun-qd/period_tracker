@@ -21,6 +21,7 @@ class StatisticsController extends GetxController {
   // 图表数据
   final cycleLengthData = <int>[].obs;
   final periodLengthData = <int>[].obs;
+  final cycleData = <int>[].obs; // 添加 cycleData 属性用于图表显示
   final symptomsData = <String, int>{}.obs;
   final moodData = <String, int>{}.obs;
 
@@ -63,6 +64,7 @@ class StatisticsController extends GetxController {
     // 周期长度数据
     cycleLengthData.clear();
     periodLengthData.clear();
+    cycleData.clear(); // 清空 cycleData
 
     for (int i = 0; i < periods.length - 1; i++) {
       final current = periods[i];
@@ -70,6 +72,7 @@ class StatisticsController extends GetxController {
       final length = DateCalculator.daysBetween(next.startDate, current.startDate);
       if (length >= 21 && length <= 35) {
         cycleLengthData.add(length);
+        cycleData.add(length); // 同步更新 cycleData
       }
 
       final periodLength = current.actualPeriodLength;
