@@ -29,11 +29,6 @@ class RecordController extends GetxController {
   /// 备注文本控制器 - 与TextField双向绑定
   final notesController = TextEditingController();
 
-  // =================== 性能优化相关 ===================
-
-  /// 防抖计时器 - 避免频繁的自动保存操作
-  Timer? _debounceTimer;
-
   // =================== 响应式状态变量 ===================
 
   /// 当前选中的日期 - 用户可以选择不同日期进行记录
@@ -165,12 +160,10 @@ class RecordController extends GetxController {
   void toggleSymptom(String symptom) {
     if (symptoms.contains(symptom)) {
       symptoms.remove(symptom);
-      ErrorHandler.showInfo('已移除症状：$symptom');
     } else {
       if (symptoms.length < 10) {
         // 限制最多选择10个症状
         symptoms.add(symptom);
-        ErrorHandler.showInfo('已添加症状：$symptom');
       } else {
         ErrorHandler.showWarning('最多只能选择10个症状');
       }
@@ -181,29 +174,9 @@ class RecordController extends GetxController {
     if (text.length <= 200) {
       notes.value = text;
       notesController.text = text; // 同步更新文本控制器
-
-      // 触发防抖自动保存
-      _triggerAutoSave();
     } else {
       ErrorHandler.showWarning('笔记内容不能超过200个字符');
     }
-  }
-
-  /// 触发防抖自动保存
-  ///
-  /// 在用户停止输入500毫秒后自动保存数据
-  /// 避免频繁的保存操作影响性能
-  void _triggerAutoSave() {
-    // 取消之前的计时器
-    _debounceTimer?.cancel();
-
-    // 设置新的计时器
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (hasUnsavedChanges) {
-        saveRecord();
-        debugPrint('自动保存触发');
-      }
-    });
   }
 
   /// 重置所有数据
@@ -358,9 +331,6 @@ class RecordController extends GetxController {
 
   @override
   void onClose() {
-    // 清理计时器，防止内存泄漏
-    _debounceTimer?.cancel();
-
     // 清理文本控制器，防止内存泄漏
     notesController.dispose();
 

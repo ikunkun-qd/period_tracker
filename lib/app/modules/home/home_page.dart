@@ -44,13 +44,27 @@ class HomePage extends GetView<HomeController> {
 
                 const SizedBox(height: 20),
 
-                // 今日状态卡片
-                _buildTodayStatusCard(),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 计算可用宽度，减去间距
+                    final availableWidth = constraints.maxWidth - 16;
+                    final todayStatusWidth = availableWidth * 0.35; // 35%
+                    final cycleStatsWidth = availableWidth * 0.65; // 65%
 
-                const SizedBox(height: 20),
-
-                // 周期统计卡片
-                _buildCycleStatsCard(),
+                    return IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 今日状态卡片
+                          SizedBox(width: todayStatusWidth, child: _buildTodayStatusCard()),
+                          const SizedBox(width: 16),
+                          // 周期统计卡片
+                          SizedBox(width: cycleStatsWidth, child: _buildCycleStatsCard()),
+                        ],
+                      ),
+                    );
+                  },
+                ),
 
                 const SizedBox(height: 20),
 
@@ -208,6 +222,7 @@ class HomePage extends GetView<HomeController> {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         ),
                       ),
                     ),
@@ -217,6 +232,12 @@ class HomePage extends GetView<HomeController> {
                         onPressed: controller.navigateToRecord,
                         icon: const Icon(Icons.edit),
                         label: Text('record_symptoms'.tr),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
                       ),
                     ),
                   ],
@@ -236,6 +257,9 @@ class HomePage extends GetView<HomeController> {
                               backgroundColor: AppTheme.primaryColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                             ),
                           ),
                         ),
@@ -245,6 +269,14 @@ class HomePage extends GetView<HomeController> {
                             onPressed: controller.navigateToRecord,
                             icon: const Icon(Icons.edit),
                             label: Text('record_data'.tr),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                              side: BorderSide(color: AppTheme.primaryColor),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -314,15 +346,17 @@ class HomePage extends GetView<HomeController> {
   Widget _buildTodayStatusCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'today_status'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             Obx(() {
               final statusChips = <Widget>[];
 
@@ -350,7 +384,12 @@ class HomePage extends GetView<HomeController> {
                 );
               }
 
-              return Wrap(spacing: 8, runSpacing: 8, children: statusChips);
+              return Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                alignment: WrapAlignment.center,
+                children: statusChips,
+              );
             }),
           ],
         ),
@@ -361,15 +400,16 @@ class HomePage extends GetView<HomeController> {
   /// 构建状态标签
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -378,28 +418,40 @@ class HomePage extends GetView<HomeController> {
   Widget _buildCycleStatsCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'cycle_stats'.tr,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'cycle_stats'.tr,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 TextButton(
                   onPressed: controller.navigateToStatistics,
-                  child: Text('view_details'.tr),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text('view_details'.tr, style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Obx(() {
               return Text(
                 controller.cycleStatsText,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               );
             }),
           ],

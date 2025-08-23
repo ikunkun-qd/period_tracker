@@ -40,16 +40,23 @@ class CalendarPage extends GetView<CalendarController> {
           onRefresh: controller.refreshData,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 // 日历组件
                 _buildCalendar(),
 
+                const SizedBox(height: 20),
+
                 // 图例
                 _buildLegend(),
 
+                const SizedBox(height: 20),
+
                 // 选中日期的详细信息
                 _buildSelectedDayInfo(),
+
+                const SizedBox(height: 20),
 
                 // 快速操作区域
                 _buildQuickActions(),
@@ -66,7 +73,6 @@ class CalendarPage extends GetView<CalendarController> {
   Widget _buildCalendar() {
     return Obx(
       () => Container(
-        margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -90,24 +96,61 @@ class CalendarPage extends GetView<CalendarController> {
           eventLoader: controller.getEventsForDay,
           startingDayOfWeek: StartingDayOfWeek.monday,
           locale: 'zh_CN',
-          calendarStyle: const CalendarStyle(
+          calendarStyle: CalendarStyle(
             outsideDaysVisible: false,
-            weekendTextStyle: TextStyle(color: Colors.red),
-            holidayTextStyle: TextStyle(color: Colors.red),
+            weekendTextStyle: TextStyle(
+              color: Colors.red.shade600,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+            holidayTextStyle: TextStyle(
+              color: Colors.red.shade600,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
             markersMaxCount: 3,
-            markerSize: 6,
-            markerMargin: EdgeInsets.symmetric(horizontal: 1),
+            markerSize: 8,
+            markerMargin: const EdgeInsets.symmetric(horizontal: 1.5),
+            markerDecoration: BoxDecoration(color: Colors.orange.shade400, shape: BoxShape.circle),
+            selectedDecoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            todayDecoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.7),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.primaryColor, width: 2),
+            ),
+            defaultTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
-          headerStyle: const HeaderStyle(
+          headerStyle: HeaderStyle(
             formatButtonVisible: true,
             titleCentered: true,
             formatButtonShowsNext: false,
-            formatButtonDecoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            titleTextStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
-            formatButtonTextStyle: TextStyle(color: Colors.white, fontSize: 12),
-            titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            formatButtonTextStyle: TextStyle(
+              fontSize: 12,
+              color: AppTheme.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+            formatButtonDecoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+            ),
+            leftChevronIcon: Icon(Icons.chevron_left, color: AppTheme.primaryColor, size: 24),
+            rightChevronIcon: Icon(Icons.chevron_right, color: AppTheme.primaryColor, size: 24),
           ),
           onDaySelected: controller.onDaySelected,
           onPageChanged: controller.onPageChanged,
@@ -124,7 +167,10 @@ class CalendarPage extends GetView<CalendarController> {
               return _buildDayCell(day, isToday: true);
             },
             markerBuilder: (context, day, events) {
-              return Row(mainAxisSize: MainAxisSize.min, children: controller.getDayMarkers(day));
+              return Positioned(
+                bottom: 4,
+                child: Row(mainAxisSize: MainAxisSize.min, children: controller.getDayMarkers(day)),
+              );
             },
           ),
         ),
@@ -194,39 +240,41 @@ class CalendarPage extends GetView<CalendarController> {
 
   /// 构建图例
   Widget _buildLegend() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('图例', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            children: [
-              _buildLegendItem('经期', AppTheme.periodColor),
-              _buildLegendItem('排卵期', AppTheme.ovulationColor),
-              _buildLegendItem('易孕期', AppTheme.fertileColor),
-              _buildLegendItem('安全期', AppTheme.safeColor),
-              _buildLegendItem('预测', Colors.grey, isDashed: true),
-              _buildLegendItem('有记录', Colors.orange, showDot: true),
-            ],
-          ),
-        ],
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('图例', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                _buildLegendItem('经期', AppTheme.periodColor),
+                _buildLegendItem('排卵期', AppTheme.ovulationColor),
+                _buildLegendItem('易孕期', AppTheme.fertileColor),
+                _buildLegendItem('安全期', AppTheme.safeColor),
+                _buildLegendItem('预测', Colors.grey, isDashed: true),
+                _buildLegendItem('有记录', Colors.orange, showDot: true),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -268,10 +316,173 @@ class CalendarPage extends GetView<CalendarController> {
   /// 构建选中日期信息
   Widget _buildSelectedDayInfo() {
     return Obx(() {
-      final infoText = controller.getSelectedDayInfo();
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('选中日期信息', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              _buildSelectedDayInfoChips(),
+            ],
+          ),
+        ),
+      );
+    });
+  }
 
-      return Container(
-        margin: const EdgeInsets.all(16),
+  /// 构建选中日期信息标签
+  Widget _buildSelectedDayInfoChips() {
+    final day = controller.selectedDay.value;
+    final record = controller.getDailyRecord(day);
+    final events = controller.getEventsForDay(day);
+    final chips = <Widget>[];
+
+    // 日期信息
+    chips.add(
+      _buildInfoChip('${day.year}年${day.month}月${day.day}日', Colors.blue, Icons.calendar_today),
+    );
+
+    // 周期状态
+    if (events.contains('period')) {
+      chips.add(_buildInfoChip('经期中', AppTheme.periodColor, Icons.water_drop));
+    } else if (events.contains('predicted_period')) {
+      chips.add(
+        _buildInfoChip(
+          '预测经期',
+          AppTheme.periodColor.withValues(alpha: 0.7),
+          Icons.water_drop_outlined,
+        ),
+      );
+    } else if (events.contains('ovulation') || events.contains('predicted_ovulation')) {
+      chips.add(_buildInfoChip('排卵期', AppTheme.ovulationColor, Icons.favorite));
+    } else if (events.contains('fertile')) {
+      chips.add(_buildInfoChip('易孕期', AppTheme.fertileColor, Icons.spa));
+    } else {
+      chips.add(_buildInfoChip('安全期', AppTheme.safeColor, Icons.shield));
+    }
+
+    // 记录信息
+    if (record != null) {
+      if (record.flowLevel != null && record.flowLevel! > 0) {
+        chips.add(
+          _buildInfoChip(
+            '流量: ${_getFlowLevelText(record.flowLevel!)}',
+            Colors.red.shade300,
+            Icons.opacity,
+          ),
+        );
+      }
+      if (record.painLevel != null && record.painLevel! > 0) {
+        chips.add(
+          _buildInfoChip('疼痛: ${record.painLevel}/10', Colors.orange.shade300, Icons.healing),
+        );
+      }
+      if (record.mood != null && record.mood! > 0) {
+        chips.add(
+          _buildInfoChip('心情: ${_getMoodText(record.mood!)}', Colors.green.shade300, Icons.mood),
+        );
+      }
+    } else {
+      chips.add(_buildInfoChip('暂无记录', Colors.grey.shade300, Icons.info_outline));
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.start,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: chips,
+    );
+  }
+
+  /// 构建信息标签
+  Widget _buildInfoChip(String label, Color color, IconData icon) {
+    return Container(
+      height: 28, // 固定高度确保对齐
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color.withValues(alpha: 0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1.0, // 固定行高
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 获取流量等级文本
+  String _getFlowLevelText(int level) {
+    switch (level) {
+      case 1:
+        return '点滴';
+      case 2:
+        return '轻微';
+      case 3:
+        return '正常';
+      case 4:
+        return '较多';
+      case 5:
+        return '很多';
+      default:
+        return '未知';
+    }
+  }
+
+  /// 获取心情文本
+  String _getMoodText(int mood) {
+    switch (mood) {
+      case 1:
+        return '很差';
+      case 2:
+        return '较差';
+      case 3:
+        return '一般';
+      case 4:
+        return '较好';
+      case 5:
+        return '很好';
+      default:
+        return '未知';
+    }
+  }
+
+  /// 构建快速操作区域
+  Widget _buildQuickActions() {
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -288,80 +499,48 @@ class CalendarPage extends GetView<CalendarController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('选中日期信息', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              'quick_actions'.tr,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
-            Text(infoText, style: const TextStyle(fontSize: 14, height: 1.5)),
-            if (controller.getDailyRecord(controller.selectedDay.value) == null) ...[
-              const SizedBox(height: 8),
-              Text('该日期暂无记录数据', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // 通过HomeController导航以正确更新底部导航索引
+                      Get.find<HomeController>().changeTabIndex(2); // 2是记录页面的索引
+                    },
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: Text('record_data'.tr),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // 通过HomeController导航以正确更新底部导航索引
+                      Get.find<HomeController>().changeTabIndex(3); // 3是统计页面的索引
+                    },
+                    icon: const Icon(Icons.bar_chart, size: 18),
+                    label: Text('view_statistics'.tr),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-      );
-    });
-  }
-
-  /// 构建快速操作区域
-  Widget _buildQuickActions() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'quick_actions'.tr,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // 通过HomeController导航以正确更新底部导航索引
-                    Get.find<HomeController>().changeTabIndex(2); // 2是记录页面的索引
-                  },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: Text('record_data'.tr),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // 通过HomeController导航以正确更新底部导航索引
-                    Get.find<HomeController>().changeTabIndex(3); // 3是统计页面的索引
-                  },
-                  icon: const Icon(Icons.bar_chart, size: 18),
-                  label: Text('view_statistics'.tr),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    side: const BorderSide(color: AppTheme.primaryColor),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
