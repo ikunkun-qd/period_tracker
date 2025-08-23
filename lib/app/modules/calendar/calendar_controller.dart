@@ -7,20 +7,38 @@ import '../../utils/cycle_predictor.dart';
 import '../../utils/date_calculator.dart';
 import '../../utils/date_formatter.dart';
 
-/// 日历页面控制器
+/// 日历页面控制器 - 管理日历视图和相关数据
+///
+/// 主要功能：
+/// 1. 管理日历的显示状态（选中日期、显示月份、格式）
+/// 2. 加载和缓存周期数据、每日记录和预测信息
+/// 3. 提供日期相关的业务逻辑（颜色标记、事件显示）
+/// 4. 处理用户的日期选择和月份切换操作
+///
+/// 性能优化：
+/// - 按月加载数据，减少内存占用
+/// - 缓存当前月份的数据，避免重复查询
+/// - 智能的数据范围计算，只加载必要的数据
 class CalendarController extends GetxController {
+  // =================== 依赖注入 ===================
+
+  /// 周期服务 - 提供周期相关的数据和计算
   final CycleService _cycleService = Get.find<CycleService>();
 
-  // 当前选中的日期
+  // =================== 日历状态管理 ===================
+
+  /// 当前选中的日期 - 用户点击选择的日期
   final selectedDay = DateTime.now().obs;
 
-  // 当前显示的月份
+  /// 当前显示的月份 - 日历视图的焦点月份
   final focusedDay = DateTime.now().obs;
 
-  // 日历格式
+  /// 日历显示格式 - 月视图、双周视图或周视图
   final calendarFormat = CalendarFormat.month.obs;
 
-  // 数据加载状态
+  // =================== 数据状态管理 ===================
+
+  /// 数据加载状态 - 控制加载指示器的显示
   final isLoading = false.obs;
 
   // 周期数据
@@ -44,26 +62,52 @@ class CalendarController extends GetxController {
   }
 
   /// 加载日历数据
+  ///
+  /// 性能优化：
+  /// - 并行加载多个数据源，减少总等待时间
+  /// - 使用Future.wait批量处理异步操作
+  /// - 优先加载核心数据，预测数据可以延迟加载
   Future<void> loadCalendarData() async {
     try {
       isLoading.value = true;
 
-      // 加载周期记录
-      final periods = await _cycleService.getAllPeriods();
-      periodRecords.value = periods;
+      // 并行加载核心数据，提高加载速度
+      final results = await Future.wait([
+        _cycleService.getAllPeriods(),
+        _cycleService.getDailyRecordsInRange(calendarStartDate, calendarEndDate),
+      ]);
 
-      // 加载当前显示范围的每日记录
-      final dailyData = await _cycleService.getDailyRecordsInRange(
-        calendarStartDate,
-        calendarEndDate,
-      );
-      dailyRecords.value = dailyData;
+      // 更新核心数据
+      periodRecords.value = results[0] as List<PeriodRecord>;
+      dailyRecords.value = results[1] as List<DailyRecord>;
 
-      // 获取预测数据
-      final nextPeriod = await _cycleService.getNextPeriodPrediction();
-      final ovulation = await _cycleService.getOvulationPrediction();
-      final fertileWindow = await _cycleService.getFertileWindowPrediction();
+      // 异步加载预测数据，不阻塞UI
+      _loadPredictionDataAsync();
+    } catch (e) {
+      debugPrint('加载日历数据失败: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
+  /// 异步加载预测数据
+  ///
+  /// 在后台加载预测数据，不阻塞主要的日历显示
+  /// 这样可以让用户更快看到基本的日历内容
+  Future<void> _loadPredictionDataAsync() async {
+    try {
+      // 并行获取所有预测数据
+      final predictionResults = await Future.wait([
+        _cycleService.getNextPeriodPrediction(),
+        _cycleService.getOvulationPrediction(),
+        _cycleService.getFertileWindowPrediction(),
+      ]);
+
+      final nextPeriod = predictionResults[0] as PredictionResult;
+      final ovulation = predictionResults[1] as PredictionResult;
+      final fertileWindow = predictionResults[2] as DateRange;
+
+      // 更新预测数据
       predictions.value = {
         'period': nextPeriod,
         'ovulation': ovulation,
@@ -80,10 +124,12 @@ class CalendarController extends GetxController {
           parameters: {},
         ),
       };
+
+      debugPrint('预测数据加载完成');
     } catch (e) {
-      debugPrint('加载日历数据失败: $e');
-    } finally {
-      isLoading.value = false;
+      debugPrint('加载预测数据失败: $e');
+      // 设置空的预测数据，避免UI错误
+      predictions.value = {};
     }
   }
 
@@ -243,7 +289,7 @@ class CalendarController extends GetxController {
     if (isPeriodDay(day)) {
       return const Color(0xFFE91E63); // 经期 - 粉红色
     } else if (isPredictedPeriodDay(day)) {
-      return const Color(0xFFE91E63).withOpacity(0.5); // 预测经期 - 半透明粉红
+      return const Color(0xFFE91E63).withValues(alpha: 0.5); // 预测经期 - 半透明粉红
     } else if (isOvulationDay(day) || isPredictedOvulationDay(day)) {
       return const Color(0xFF4CAF50); // 排卵期 - 绿色
     } else if (isFertileDay(day)) {

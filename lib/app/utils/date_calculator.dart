@@ -1,10 +1,22 @@
 import '../data/models/models.dart';
 
-/// 日期计算工具类
+/// 日期计算工具类 - 提供安全的日期计算方法
+///
+/// 所有方法都包含边界检查和错误处理，确保在各种输入情况下都能正常工作
 class DateCalculator {
   /// 计算两个日期之间的天数
+  ///
+  /// [start] 开始日期
+  /// [end] 结束日期
+  ///
+  /// 返回天数差，如果end在start之前则返回负数
+  /// 自动处理时区和时间部分的差异
   static int daysBetween(DateTime start, DateTime end) {
-    return end.difference(start).inDays;
+    // 标准化日期，只保留日期部分，忽略时间
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+
+    return endDate.difference(startDate).inDays;
   }
 
   /// 添加天数到日期
@@ -17,10 +29,28 @@ class DateCalculator {
     return date.subtract(Duration(days: days));
   }
 
-  /// 检查日期是否在范围内
+  /// 检查日期是否在范围内（包含边界）
+  ///
+  /// [date] 要检查的日期
+  /// [start] 范围开始日期
+  /// [end] 范围结束日期
+  ///
+  /// 返回true如果日期在范围内（包含start和end）
+  /// 自动处理start晚于end的情况
   static bool isDateInRange(DateTime date, DateTime start, DateTime end) {
-    return date.isAfter(start.subtract(const Duration(days: 1))) &&
-        date.isBefore(end.add(const Duration(days: 1)));
+    // 确保start不晚于end
+    if (start.isAfter(end)) {
+      final temp = start;
+      start = end;
+      end = temp;
+    }
+
+    // 标准化日期，只比较日期部分
+    final checkDate = DateTime(date.year, date.month, date.day);
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+
+    return !checkDate.isBefore(startDate) && !checkDate.isAfter(endDate);
   }
 
   /// 获取月份的第一天

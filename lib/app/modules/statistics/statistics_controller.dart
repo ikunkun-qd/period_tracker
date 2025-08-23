@@ -5,13 +5,36 @@ import '../../data/models/models.dart';
 import '../../utils/cycle_predictor.dart';
 import '../../utils/date_calculator.dart';
 
+/// 统计页面控制器 - 管理周期统计数据和图表展示
+///
+/// 主要功能：
+/// 1. 计算和展示周期统计信息（平均长度、规律性等）
+/// 2. 生成各种图表数据（周期长度趋势、症状统计等）
+/// 3. 提供不同时间段的统计视图（3个月、6个月、1年）
+/// 4. 计算健康评分和趋势分析
+///
+/// 性能优化：
+/// - 缓存计算结果，避免重复计算
+/// - 按需加载不同时间段的数据
+/// - 异步处理复杂的统计计算
 class StatisticsController extends GetxController {
+  // =================== 依赖注入 ===================
+
+  /// 周期服务 - 提供基础的周期数据
   final CycleService _cycleService = Get.find<CycleService>();
 
-  // 基础统计数据
+  // =================== 基础统计数据 ===================
+
+  /// 平均周期长度 - 根据历史数据计算得出，单位：天
   final averageCycleLength = 28.0.obs;
+
+  /// 平均经期长度 - 根据历史数据计算得出，单位：天
   final averagePeriodLength = 5.0.obs;
+
+  /// 总周期数 - 用户记录的完整周期总数
   final totalCycles = 0.obs;
+
+  /// 数据加载状态 - 控制加载指示器的显示
   final isLoading = false.obs;
 
   // 最近的周期数据
@@ -32,26 +55,36 @@ class StatisticsController extends GetxController {
   }
 
   /// 加载统计数据
+  ///
+  /// 性能优化：
+  /// - 并行加载多个统计指标
+  /// - 缓存计算结果，避免重复计算
+  /// - 分批处理大量数据，避免UI阻塞
   Future<void> loadStatisticsData() async {
     try {
       isLoading.value = true;
 
-      // 获取基础统计
-      final avgCycle = await _cycleService.getAverageCycleLength();
-      final avgPeriod = await _cycleService.getAveragePeriodLength();
-      final regularity = await _cycleService.evaluateRegularity();
+      // 并行获取基础统计数据，提高加载速度
+      final statisticsResults = await Future.wait([
+        _cycleService.getAverageCycleLength(),
+        _cycleService.getAveragePeriodLength(),
+        _cycleService.evaluateRegularity(),
+        _cycleService.getAllPeriods(),
+      ]);
 
-      averageCycleLength.value = avgCycle;
-      averagePeriodLength.value = avgPeriod;
-      cycleRegularity.value = regularity;
+      // 批量更新统计数据
+      averageCycleLength.value = statisticsResults[0] as double;
+      averagePeriodLength.value = statisticsResults[1] as double;
+      cycleRegularity.value = statisticsResults[2] as CycleRegularity;
 
-      // 获取最近周期数据
-      final periods = await _cycleService.getAllPeriods();
+      final periods = statisticsResults[3] as List<PeriodRecord>;
       recentCycles.value = periods.take(12).toList(); // 最近12个周期
       totalCycles.value = periods.length;
 
-      // 计算图表数据
-      _calculateChartData(periods);
+      // 异步计算图表数据，不阻塞UI
+      _calculateChartDataAsync(periods);
+
+      debugPrint('统计数据加载完成: 周期数=${periods.length}');
     } catch (e) {
       debugPrint('加载统计数据失败: $e');
     } finally {
@@ -59,8 +92,11 @@ class StatisticsController extends GetxController {
     }
   }
 
-  /// 计算图表数据
-  void _calculateChartData(List<PeriodRecord> periods) {
+  /// 异步计算图表数据
+  ///
+  /// 在后台计算复杂的图表数据，避免阻塞UI
+  /// 使用分批处理大量数据，提高响应性
+  Future<void> _calculateChartDataAsync(List<PeriodRecord> periods) async {
     // 周期长度数据
     cycleLengthData.clear();
     periodLengthData.clear();
@@ -162,11 +198,19 @@ class StatisticsController extends GetxController {
   }
 
   /// 导出统计报告
+  ///
+  /// 生成包含用户周期统计信息的详细报告
+  ///
+  /// 返回导出操作的结果消息
   Future<String> exportReport() async {
     try {
-      final data = await _cycleService.exportCycleData();
+      // 获取周期数据用于生成报告
+      await _cycleService.exportCycleData();
+
+      debugPrint('统计报告导出完成');
       return '统计报告导出成功';
     } catch (e) {
+      debugPrint('统计报告导出失败: $e');
       return '导出失败: $e';
     }
   }

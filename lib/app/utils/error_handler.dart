@@ -2,7 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// 错误处理工具类
+/// 错误处理工具类 - 统一处理应用中的错误和用户反馈
+///
+/// 主要功能：
+/// 1. 统一的异常捕获和处理
+/// 2. 用户友好的错误消息显示
+/// 3. 开发环境的详细错误日志
+/// 4. 不同类型的用户反馈（成功、警告、错误、信息）
+///
+/// 使用方式：
+/// - ErrorHandler.handleAsync(() => someAsyncOperation())
+/// - ErrorHandler.showSuccess('操作成功')
+/// - ErrorHandler.showError('操作失败')
 class ErrorHandler {
   /// 处理异步操作错误
   static Future<T?> handleAsync<T>(

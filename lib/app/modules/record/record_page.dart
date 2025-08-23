@@ -509,6 +509,7 @@ class RecordPage extends GetView<RecordController> {
             ),
             const SizedBox(height: 10),
             TextField(
+              controller: controller.notesController,
               maxLines: 4,
               maxLength: 200,
               decoration: InputDecoration(

@@ -44,13 +44,27 @@ class HomePage extends GetView<HomeController> {
 
                 const SizedBox(height: 20),
 
-                // 今日状态卡片
-                _buildTodayStatusCard(),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 计算可用宽度，减去间距
+                    final availableWidth = constraints.maxWidth - 16;
+                    final todayStatusWidth = availableWidth * 0.35; // 35%
+                    final cycleStatsWidth = availableWidth * 0.65; // 65%
 
-                const SizedBox(height: 20),
-
-                // 周期统计卡片
-                _buildCycleStatsCard(),
+                    return IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 今日状态卡片
+                          SizedBox(width: todayStatusWidth, child: _buildTodayStatusCard()),
+                          const SizedBox(width: 16),
+                          // 周期统计卡片
+                          SizedBox(width: cycleStatsWidth, child: _buildCycleStatsCard()),
+                        ],
+                      ),
+                    );
+                  },
+                ),
 
                 const SizedBox(height: 20),
 
@@ -86,16 +100,20 @@ class HomePage extends GetView<HomeController> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    controller.isOnPeriod ? 'current_period'.tr : 'next_period'.tr,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Obx(
+                    () => Text(
+                      controller.isOnPeriod.value ? 'current_period'.tr : 'next_period'.tr,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: controller.currentPhaseColor.withOpacity(0.1),
+                      color: controller.currentPhaseColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: controller.currentPhaseColor.withOpacity(0.3)),
+                      border: Border.all(
+                        color: controller.currentPhaseColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       controller.currentPhaseText,
@@ -112,54 +130,60 @@ class HomePage extends GetView<HomeController> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (controller.isOnPeriod) ...[
-                          Text(
-                            'day_x'.trParams({'day': '${controller.currentCycleDay}'}),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
+                    child: Obx(
+                      () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (controller.isOnPeriod.value) ...[
+                            Text(
+                              'day_x'.trParams({'day': '${controller.currentCycleDay.value}'}),
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'period_in_progress'.tr,
-                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                          ),
-                        ] else ...[
-                          Text(
-                            controller.daysUntilNextPeriod <= 0
-                                ? 'today'.tr
-                                : DateFormatter.formatCountdown(controller.daysUntilNextPeriod),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
+                            const SizedBox(height: 5),
+                            Text(
+                              'period_in_progress'.tr,
+                              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'cycle_day'.trParams({'day': '${controller.currentCycleDay}'}),
-                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                          ),
+                          ] else ...[
+                            Text(
+                              controller.daysUntilNextPeriod.value <= 0
+                                  ? 'today'.tr
+                                  : DateFormatter.formatCountdown(
+                                      controller.daysUntilNextPeriod.value,
+                                    ),
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              'cycle_day'.trParams({'day': '${controller.currentCycleDay.value}'}),
+                              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: controller.currentPhaseColor.withOpacity(0.1),
+                      color: controller.currentPhaseColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(40),
                     ),
-                    child: Icon(
-                      controller.isOnPeriod ? Icons.water_drop : Icons.calendar_today,
-                      size: 40,
-                      color: controller.currentPhaseColor,
+                    child: Obx(
+                      () => Icon(
+                        controller.isOnPeriod.value ? Icons.water_drop : Icons.calendar_today,
+                        size: 40,
+                        color: controller.currentPhaseColor,
+                      ),
                     ),
                   ),
                 ],
@@ -185,7 +209,7 @@ class HomePage extends GetView<HomeController> {
             ),
             const SizedBox(height: 15),
             Obx(() {
-              if (controller.isOnPeriod) {
+              if (controller.isOnPeriod.value) {
                 // 如果正在经期，显示结束经期按钮
                 return Row(
                   children: [
@@ -198,6 +222,7 @@ class HomePage extends GetView<HomeController> {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         ),
                       ),
                     ),
@@ -207,6 +232,12 @@ class HomePage extends GetView<HomeController> {
                         onPressed: controller.navigateToRecord,
                         icon: const Icon(Icons.edit),
                         label: Text('record_symptoms'.tr),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
                       ),
                     ),
                   ],
@@ -226,6 +257,9 @@ class HomePage extends GetView<HomeController> {
                               backgroundColor: AppTheme.primaryColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                             ),
                           ),
                         ),
@@ -235,6 +269,14 @@ class HomePage extends GetView<HomeController> {
                             onPressed: controller.navigateToRecord,
                             icon: const Icon(Icons.edit),
                             label: Text('record_data'.tr),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                              side: BorderSide(color: AppTheme.primaryColor),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -288,7 +330,7 @@ class HomePage extends GetView<HomeController> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Icon(icon, size: 25, color: color),
@@ -304,31 +346,35 @@ class HomePage extends GetView<HomeController> {
   Widget _buildTodayStatusCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'today_status'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             Obx(() {
               final statusChips = <Widget>[];
 
-              if (controller.isOnPeriod) {
+              if (controller.isOnPeriod.value) {
                 statusChips.add(_buildStatusChip('经期中', AppTheme.periodColor));
               }
 
-              if (controller.isOvulating) {
+              if (controller.isOvulating.value) {
                 statusChips.add(_buildStatusChip('排卵期', AppTheme.ovulationColor));
               }
 
-              if (controller.isFertile && !controller.isOvulating) {
+              if (controller.isFertile.value && !controller.isOvulating.value) {
                 statusChips.add(_buildStatusChip('易孕期', AppTheme.fertileColor));
               }
 
-              if (!controller.isOnPeriod && !controller.isOvulating && !controller.isFertile) {
+              if (!controller.isOnPeriod.value &&
+                  !controller.isOvulating.value &&
+                  !controller.isFertile.value) {
                 statusChips.add(_buildStatusChip('安全期', AppTheme.safeColor));
               }
 
@@ -338,7 +384,12 @@ class HomePage extends GetView<HomeController> {
                 );
               }
 
-              return Wrap(spacing: 8, runSpacing: 8, children: statusChips);
+              return Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                alignment: WrapAlignment.center,
+                children: statusChips,
+              );
             }),
           ],
         ),
@@ -349,15 +400,16 @@ class HomePage extends GetView<HomeController> {
   /// 构建状态标签
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -366,28 +418,40 @@ class HomePage extends GetView<HomeController> {
   Widget _buildCycleStatsCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'cycle_stats'.tr,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'cycle_stats'.tr,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 TextButton(
                   onPressed: controller.navigateToStatistics,
-                  child: Text('view_details'.tr),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text('view_details'.tr, style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Obx(() {
               return Text(
                 controller.cycleStatsText,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               );
             }),
           ],
@@ -414,15 +478,15 @@ class HomePage extends GetView<HomeController> {
               IconData icon = Icons.lightbulb;
               Color color = Colors.orange;
 
-              if (controller.isOnPeriod) {
+              if (controller.isOnPeriod.value) {
                 tip = '经期期间注意休息，适当补充铁质，避免剧烈运动。';
                 icon = Icons.water_drop;
                 color = AppTheme.periodColor;
-              } else if (controller.isOvulating) {
+              } else if (controller.isOvulating.value) {
                 tip = '排卵期是最佳受孕时期，如有计划请把握机会。';
                 icon = Icons.favorite;
                 color = AppTheme.ovulationColor;
-              } else if (controller.isFertile) {
+              } else if (controller.isFertile.value) {
                 tip = '易孕期需要注意防护措施，或合理安排同房时间。';
                 icon = Icons.spa;
                 color = AppTheme.fertileColor;
@@ -431,9 +495,9 @@ class HomePage extends GetView<HomeController> {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: color.withOpacity(0.2)),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
@@ -442,7 +506,7 @@ class HomePage extends GetView<HomeController> {
                     Expanded(
                       child: Text(
                         tip,
-                        style: TextStyle(color: color.withOpacity(0.8), fontSize: 13),
+                        style: TextStyle(color: color.withValues(alpha: 0.8), fontSize: 13),
                       ),
                     ),
                   ],
