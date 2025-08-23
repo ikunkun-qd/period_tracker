@@ -68,11 +68,9 @@ class AppTranslations extends Translations {
       'fertile_days': '易孕期',
       'safe_days': '安全期',
 
-      // 记录
+      // 记录页面专用
       'record_title': '记录',
       'record_period': '记录经期',
-      'record_symptoms': '记录症状',
-      'record_mood': '记录心情',
       'record_notes': '添加备注',
       'flow_level': '流量等级',
       'flow_light': '轻微',
@@ -271,11 +269,11 @@ class AppTranslations extends Translations {
       'fertile_days': 'Fertile',
       'safe_days': 'Safe',
 
-      // 记录
-      'record_title': 'Record',
-      'record_period': 'Record Period',
-      'record_symptoms': 'Record Symptoms',
-      'record_mood': 'Record Mood',
+      // 记录 - 英文翻译
+      'record_title_en': 'Record',
+      'record_period_en': 'Record Period',
+      'record_symptoms_en': 'Record Symptoms',
+      'record_mood_en': 'Record Mood',
       'record_notes': 'Add Notes',
       'flow_level': 'Flow Level',
       'flow_light': 'Light',

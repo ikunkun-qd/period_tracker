@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/common_bottom_navigation.dart';
-import '../../utils/date_formatter.dart';
 import '../home/home_controller.dart';
 import 'calendar_controller.dart';
 
@@ -73,7 +72,7 @@ class CalendarPage extends GetView<CalendarController> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 1,
               blurRadius: 4,
               offset: const Offset(0, 2),
@@ -143,7 +142,7 @@ class CalendarPage extends GetView<CalendarController> {
       backgroundColor = AppTheme.primaryColor;
       textColor = Colors.white;
     } else if (isToday) {
-      backgroundColor = AppTheme.primaryColor.withOpacity(0.7);
+      backgroundColor = AppTheme.primaryColor.withValues(alpha: 0.7);
       textColor = Colors.white;
     } else {
       backgroundColor = controller.getDayColor(day);
@@ -167,7 +166,7 @@ class CalendarPage extends GetView<CalendarController> {
       // 预测数据显示为虚线边框
       final events = controller.getEventsForDay(day);
       if (events.contains('predicted_period') || events.contains('predicted_ovulation')) {
-        backgroundColor = backgroundColor.withOpacity(0.3) ?? Colors.transparent;
+        backgroundColor = backgroundColor.withValues(alpha: 0.3) ?? Colors.transparent;
         borderColor = controller.getDayColor(day);
         textColor = borderColor;
       }
@@ -203,7 +202,7 @@ class CalendarPage extends GetView<CalendarController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -246,7 +245,7 @@ class CalendarPage extends GetView<CalendarController> {
           width: 16,
           height: 16,
           decoration: BoxDecoration(
-            color: isDashed ? color.withOpacity(0.3) : color,
+            color: isDashed ? color.withValues(alpha: 0.3) : color,
             shape: BoxShape.circle,
             border: isDashed ? Border.all(color: color, width: 2) : null,
           ),
@@ -279,7 +278,7 @@ class CalendarPage extends GetView<CalendarController> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 1,
               blurRadius: 4,
               offset: const Offset(0, 2),
@@ -312,7 +311,7 @@ class CalendarPage extends GetView<CalendarController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),

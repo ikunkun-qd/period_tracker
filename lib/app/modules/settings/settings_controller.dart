@@ -131,12 +131,20 @@ class SettingsController extends GetxController {
   }
 
   /// 导出数据
+  ///
+  /// 将用户的周期数据导出为文件格式
+  /// 支持JSON格式，包含所有经期记录和每日记录
   Future<void> exportData() async {
     try {
       isLoading.value = true;
-      final result = await _cycleService.exportCycleData();
+
+      // 执行数据导出操作
+      await _cycleService.exportCycleData();
+
       Get.snackbar('成功', '数据导出成功');
+      debugPrint('用户数据导出完成');
     } catch (e) {
+      debugPrint('数据导出失败: $e');
       Get.snackbar('错误', '导出失败: $e');
     } finally {
       isLoading.value = false;

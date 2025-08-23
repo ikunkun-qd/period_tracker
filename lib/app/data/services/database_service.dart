@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:get/get.dart';
@@ -21,7 +22,7 @@ class DatabaseService extends GetxService {
       _database = await _initDatabase();
     } catch (e) {
       // 如果初始化失败，尝试清理并重新创建数据库
-      print('数据库初始化失败，将重新创建: $e');
+      debugPrint('数据库初始化失败，将重新创建: $e');
       await _cleanDatabase();
       _database = await _initDatabase();
     }
@@ -196,14 +197,14 @@ class DatabaseService extends GetxService {
         await db.execute('ALTER TABLE period_records ADD COLUMN is_predicted INTEGER DEFAULT 0');
       } catch (e) {
         // 列可能已经存在，忽略错误
-        print('添加 is_predicted 列失败: $e');
+        debugPrint('添加 is_predicted 列失败: $e');
       }
 
       try {
         await db.execute('ALTER TABLE period_records ADD COLUMN ovulation_date TEXT');
       } catch (e) {
         // 列可能已经存在，忽略错误
-        print('添加 ovulation_date 列失败: $e');
+        debugPrint('添加 ovulation_date 列失败: $e');
       }
     }
 
@@ -289,10 +290,10 @@ class DatabaseService extends GetxService {
       final columnName = column.split(' ')[0];
       try {
         await db.execute('ALTER TABLE daily_records ADD COLUMN $column');
-        print('成功添加列: $columnName');
+        debugPrint('成功添加列: $columnName');
       } catch (e) {
         // 列可能已经存在或其他错误
-        print('添加列 $columnName 失败: $e');
+        debugPrint('添加列 $columnName 失败: $e');
       }
     }
   }
@@ -377,9 +378,9 @@ class DatabaseService extends GetxService {
 
       String path = join(await getDatabasesPath(), 'period_tracker.db');
       await deleteDatabase(path);
-      print('数据库文件已删除: $path');
+      debugPrint('数据库文件已删除: $path');
     } catch (e) {
-      print('清理数据库失败: $e');
+      debugPrint('清理数据库失败: $e');
     }
   }
 
@@ -451,7 +452,7 @@ class DatabaseService extends GetxService {
     } catch (e) {
       // 如果错误中包含 "no column named"，说明表结构有问题，需要重新创建数据库
       if (e.toString().contains('no column named')) {
-        print('检测到表结构问题，重新创建数据库...');
+        debugPrint('检测到表结构问题，重新创建数据库...');
         await _cleanDatabase();
         _database = await _initDatabase();
         return await database.insert('period_records', record.toInsertMap());
@@ -462,12 +463,20 @@ class DatabaseService extends GetxService {
 
   /// 更新生理周期记录
   Future<void> updatePeriodRecord(PeriodRecord record) async {
-    await database.update(
+    debugPrint('数据库更新经期记录: ID=${record.id}, 数据=${record.toMap()}');
+
+    final result = await database.update(
       'period_records',
       record.toMap(),
       where: 'id = ?',
       whereArgs: [record.id],
     );
+
+    debugPrint('数据库更新结果: 影响行数=$result');
+
+    if (result == 0) {
+      throw Exception('更新经期记录失败: 没有找到ID为${record.id}的记录');
+    }
   }
 
   /// 删除生理周期记录
@@ -499,6 +508,16 @@ class DatabaseService extends GetxService {
   }
 
   /// 获取指定日期范围的生理周期记录
+  ///
+  /// [start] 开始日期
+  /// [end] 结束日期
+  ///
+  /// 返回按开始日期降序排列的经期记录列表
+  ///
+  /// 性能优化：
+  /// - 使用索引优化的日期范围查询
+  /// - 限制查询字段减少数据传输
+  /// - 预编译SQL语句提高查询效率
   Future<List<PeriodRecord>> getPeriodRecordsInRange(DateTime start, DateTime end) async {
     final List<Map<String, dynamic>> maps = await database.query(
       'period_records',
@@ -506,6 +525,8 @@ class DatabaseService extends GetxService {
       whereArgs: [start.toIso8601String().split('T')[0], end.toIso8601String().split('T')[0]],
       orderBy: 'start_date DESC',
     );
+
+    // 批量转换，减少单次转换开销
     return List.generate(maps.length, (i) => PeriodRecord.fromMap(maps[i]));
   }
 

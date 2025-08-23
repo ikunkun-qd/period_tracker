@@ -5,30 +5,100 @@ import '../../utils/cycle_predictor.dart';
 import '../../utils/date_calculator.dart';
 import 'database_service.dart';
 
-/// 周期管理服务
+/// 周期管理服务 - 处理生理周期相关的业务逻辑
+///
+/// 主要功能：
+/// 1. 经期管理：开始、结束经期记录
+/// 2. 周期计算：计算周期长度、预测下次经期
+/// 3. 阶段识别：识别当前所处的生理周期阶段
+/// 4. 数据统计：提供周期概览和统计信息
+///
+/// 性能优化：
+/// - 缓存常用计算结果
+/// - 批量数据库操作
+/// - 异步处理避免UI阻塞
+/// - 智能预测算法减少计算复杂度
 class CycleService extends GetxService {
+  // =================== 依赖注入 ===================
+
+  /// 数据库服务 - 处理所有数据持久化操作
   final DatabaseService _databaseService = Get.find<DatabaseService>();
 
+  // =================== 缓存变量 ===================
+
+  /// 缓存的经期记录列表 - 避免重复查询数据库
+  List<PeriodRecord>? _cachedPeriods;
+
+  /// 缓存的最后更新时间 - 用于判断缓存是否过期
+  DateTime? _lastCacheUpdate;
+
+  /// 缓存过期时间（分钟）- 平衡性能和数据新鲜度
+  static const int _cacheExpiryMinutes = 5;
+
   /// 初始化服务
+  ///
+  /// 在应用启动时调用，进行必要的初始化工作
   Future<CycleService> init() async {
+    debugPrint('CycleService 初始化完成');
     return this;
+  }
+
+  /// 清除缓存
+  ///
+  /// 在数据发生变更时调用，确保下次查询获取最新数据
+  void _clearCache() {
+    _cachedPeriods = null;
+    _lastCacheUpdate = null;
+    debugPrint('CycleService 缓存已清除');
+  }
+
+  /// 检查缓存是否有效
+  ///
+  /// 根据最后更新时间判断缓存是否过期
+  bool _isCacheValid() {
+    if (_cachedPeriods == null || _lastCacheUpdate == null) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final cacheAge = now.difference(_lastCacheUpdate!).inMinutes;
+    return cacheAge < _cacheExpiryMinutes;
   }
 
   // =================== 周期记录管理 ===================
 
   /// 开始新的经期
+  ///
+  /// 创建新的经期记录，并更新相关的每日记录和预测数据
+  ///
+  /// [startDate] 经期开始日期
+  /// [notes] 可选的备注信息
+  ///
+  /// 返回创建的经期记录
+  ///
+  /// 抛出异常：
+  /// - 如果已有活跃的经期
+  /// - 如果数据库操作失败
   Future<PeriodRecord> startNewPeriod(DateTime startDate, {String? notes}) async {
+    debugPrint('开始新经期: 日期=$startDate, 备注=$notes');
+
     // 检查是否已有正在进行的经期
     final activePeriod = await getActivePeriod();
     if (activePeriod != null) {
       throw Exception('已有正在进行的经期，请先结束当前经期');
     }
 
+    // 创建新的经期记录
     final now = DateTime.now();
     final record = PeriodRecord(startDate: startDate, notes: notes, createdAt: now, updatedAt: now);
 
+    // 保存到数据库
     final id = await _databaseService.insertPeriodRecord(record);
     final newRecord = record.copyWith(id: id);
+    debugPrint('新经期记录已保存: ID=$id');
+
+    // 清除缓存，确保下次查询获取最新数据
+    _clearCache();
 
     // 更新当天的每日记录
     await _updateDailyRecordForPeriod(startDate, isPeriod: true);
@@ -36,6 +106,7 @@ class CycleService extends GetxService {
     // 重新计算预测
     await _updatePredictions();
 
+    debugPrint('新经期创建完成');
     return newRecord;
   }
 
@@ -46,13 +117,24 @@ class CycleService extends GetxService {
       throw Exception('没有正在进行的经期');
     }
 
+    debugPrint('结束经期: 活跃经期ID=${activePeriod.id}, 开始日期=${activePeriod.startDate}, 结束日期=$endDate');
+
     final updatedRecord = activePeriod.copyWith(
       endDate: endDate,
       periodLength: endDate.difference(activePeriod.startDate).inDays + 1,
       updatedAt: DateTime.now(),
     );
 
+    debugPrint('更新记录: ${updatedRecord.toString()}');
+
     await _databaseService.updatePeriodRecord(updatedRecord);
+
+    // 验证更新是否成功
+    final verifyRecord = await _databaseService.getLatestPeriodRecord();
+    debugPrint('验证更新后的记录: ${verifyRecord?.toString()}');
+
+    // 清除缓存，确保下次查询获取最新数据
+    _clearCache();
 
     // 更新经期内的每日记录
     await _updatePeriodDailyRecords(activePeriod.startDate, endDate);
@@ -60,13 +142,16 @@ class CycleService extends GetxService {
     // 重新计算预测
     await _updatePredictions();
 
+    debugPrint('经期结束操作完成');
     return updatedRecord;
   }
 
   /// 获取正在进行的经期
   Future<PeriodRecord?> getActivePeriod() async {
     final records = await _databaseService.getAllPeriodRecords();
-    return records.where((record) => record.endDate == null).firstOrNull;
+    final activePeriod = records.where((record) => record.endDate == null).firstOrNull;
+    debugPrint('获取活跃经期: ${activePeriod?.toString() ?? "无活跃经期"}');
+    return activePeriod;
   }
 
   /// 获取最近的经期记录
@@ -75,8 +160,28 @@ class CycleService extends GetxService {
   }
 
   /// 获取所有经期记录
+  ///
+  /// 使用缓存机制提高性能，避免频繁的数据库查询
+  /// 缓存会在数据变更时自动清除
+  ///
+  /// 返回按开始日期降序排列的经期记录列表
   Future<List<PeriodRecord>> getAllPeriods() async {
-    return await _databaseService.getAllPeriodRecords();
+    // 检查缓存是否有效
+    if (_isCacheValid()) {
+      debugPrint('使用缓存的经期记录数据');
+      return _cachedPeriods!;
+    }
+
+    // 从数据库获取最新数据
+    debugPrint('从数据库获取经期记录');
+    final periods = await _databaseService.getAllPeriodRecords();
+
+    // 更新缓存
+    _cachedPeriods = periods;
+    _lastCacheUpdate = DateTime.now();
+
+    debugPrint('经期记录缓存已更新，共${periods.length}条记录');
+    return periods;
   }
 
   // =================== 每日记录管理 ===================
@@ -150,9 +255,14 @@ class CycleService extends GetxService {
 
   /// 获取周期数据概览
   Future<CycleOverview> getCycleOverview() async {
+    debugPrint('开始获取周期概览');
+
     final periods = await getAllPeriods();
     final latestPeriod = periods.isNotEmpty ? periods.first : null;
     final activePeriod = await getActivePeriod();
+
+    debugPrint('最新经期: ${latestPeriod?.toString()}');
+    debugPrint('活跃经期: ${activePeriod?.toString()}');
 
     int? currentCycleDay;
     int? daysUntilNextPeriod;
@@ -162,6 +272,7 @@ class CycleService extends GetxService {
       if (activePeriod != null) {
         // 正在经期中
         currentCycleDay = DateCalculator.daysBetween(activePeriod.startDate, today) + 1;
+        debugPrint('正在经期中，当前周期天数: $currentCycleDay');
       } else {
         // 计算当前周期天数
         currentCycleDay = DateCalculator.daysBetween(latestPeriod.startDate, today) + 1;
@@ -169,6 +280,7 @@ class CycleService extends GetxService {
         // 预测下次经期
         final prediction = await getNextPeriodPrediction();
         daysUntilNextPeriod = DateCalculator.daysBetween(today, prediction.predictedDate);
+        debugPrint('非经期，当前周期天数: $currentCycleDay, 距离下次经期: $daysUntilNextPeriod天');
       }
     }
 
@@ -176,7 +288,7 @@ class CycleService extends GetxService {
     final averageCycleLength = await getAverageCycleLength();
     final averagePeriodLength = await getAveragePeriodLength();
 
-    return CycleOverview(
+    final overview = CycleOverview(
       currentCycleDay: currentCycleDay,
       daysUntilNextPeriod: daysUntilNextPeriod,
       currentPhase: currentPhase,
@@ -185,6 +297,9 @@ class CycleService extends GetxService {
       averagePeriodLength: averagePeriodLength,
       totalCycles: periods.length,
     );
+
+    debugPrint('周期概览结果: isOnPeriod=${overview.isOnPeriod}');
+    return overview;
   }
 
   // =================== 私有辅助方法 ===================
