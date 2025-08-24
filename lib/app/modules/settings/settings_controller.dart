@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/services/database_service.dart';
 import '../../data/services/cycle_service.dart';
+import '../../data/services/locale_service.dart';
 import '../../utils/error_handler.dart';
 
 class SettingsController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
   final CycleService _cycleService = Get.find<CycleService>();
+  final LocaleService _localeService = Get.find<LocaleService>();
 
   // UI设置
   final isDarkMode = false.obs;
-  final selectedLanguage = 'zh_CN'.obs;
 
   // 通知设置
   final isNotificationEnabled = true.obs;
@@ -77,19 +78,11 @@ class SettingsController extends GetxController {
 
   /// 更改语言
   void changeLanguage(String languageCode) {
-    selectedLanguage.value = languageCode;
-    final locale = languageCode == 'zh_CN' ? const Locale('zh', 'CN') : const Locale('en', 'US');
-    Get.updateLocale(locale);
-    _saveSetting('language', languageCode);
+    // 使用 LocaleService 来处理语言切换
+    _localeService.changeLanguage(languageCode);
 
     // 关闭语言选择对话框
     Get.back();
-
-    // 显示成功提示
-    Get.snackbar(
-      'success'.tr,
-      languageCode == 'zh_CN' ? '语言已切换为中文' : 'Language changed to English',
-    );
   }
 
   /// 更新周期长度
@@ -258,7 +251,7 @@ class SettingsController extends GetxController {
               isDarkMode.value = setting.value == 'dark';
               break;
             case 'language':
-              selectedLanguage.value = setting.value;
+              // 语言设置由 LocaleService 管理，这里不需要处理
               break;
             case 'notification_enabled':
               isNotificationEnabled.value = setting.value == 'true';

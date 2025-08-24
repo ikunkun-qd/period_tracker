@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/common_bottom_navigation.dart';
+import '../../data/services/locale_service.dart';
 import 'settings_controller.dart';
 
 class SettingsPage extends GetView<SettingsController> {
@@ -46,9 +47,12 @@ class SettingsPage extends GetView<SettingsController> {
           ListTile(
             leading: const Icon(Icons.language),
             title: Text('language'.tr),
-            subtitle: Obx(
-              () => Text(controller.selectedLanguage.value == 'zh_CN' ? '中文' : 'English'),
-            ),
+            subtitle: Obx(() {
+              final localeService = Get.find<LocaleService>();
+              return Text(
+                localeService.getLanguageDisplayName(localeService.currentLanguage.value),
+              );
+            }),
             onTap: () => _showLanguageDialog(),
           ),
           Obx(
@@ -199,6 +203,8 @@ class SettingsPage extends GetView<SettingsController> {
   }
 
   void _showLanguageDialog() {
+    final localeService = Get.find<LocaleService>();
+
     Get.dialog(
       AlertDialog(
         title: Text('language'.tr),
@@ -208,7 +214,7 @@ class SettingsPage extends GetView<SettingsController> {
             ListTile(
               title: Text('chinese'.tr),
               trailing: Obx(
-                () => controller.selectedLanguage.value == 'zh_CN'
+                () => localeService.currentLanguage.value == 'zh_CN'
                     ? const Icon(Icons.check, color: Colors.green)
                     : const SizedBox.shrink(),
               ),
@@ -219,7 +225,7 @@ class SettingsPage extends GetView<SettingsController> {
             ListTile(
               title: Text('english'.tr),
               trailing: Obx(
-                () => controller.selectedLanguage.value == 'en_US'
+                () => localeService.currentLanguage.value == 'en_US'
                     ? const Icon(Icons.check, color: Colors.green)
                     : const SizedBox.shrink(),
               ),

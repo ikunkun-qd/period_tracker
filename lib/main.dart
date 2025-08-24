@@ -8,6 +8,7 @@ import 'app/ui/theme/app_theme.dart';
 import 'app/data/services/database_service.dart';
 import 'app/data/services/notification_service.dart';
 import 'app/data/services/cycle_service.dart';
+import 'app/data/services/locale_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,9 @@ Future<void> _initServices() async {
     // 初始化数据库服务
     await Get.putAsync(() => DatabaseService().init());
 
+    // 初始化语言服务（必须在数据库服务之后）
+    await Get.putAsync(() => LocaleService().init());
+
     // 初始化通知服务
     await Get.putAsync(() => NotificationService().init());
 
@@ -53,23 +57,27 @@ class PeriodTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Period Tracker',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      translations: AppTranslations(),
-      locale: Get.deviceLocale,
-      fallbackLocale: const Locale('zh', 'CN'),
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
-      initialRoute: AppPages.initial,
-      getPages: AppPages.routes,
-      debugShowCheckedModeBanner: false,
-    );
+    final localeService = Get.find<LocaleService>();
+
+    return Obx(() {
+      return GetMaterialApp(
+        title: 'Period Tracker',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        translations: AppTranslations(),
+        locale: localeService.currentLocale,
+        fallbackLocale: const Locale('zh', 'CN'),
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+        initialRoute: AppPages.initial,
+        getPages: AppPages.routes,
+        debugShowCheckedModeBanner: false,
+      );
+    });
   }
 }
