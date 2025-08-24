@@ -157,8 +157,8 @@ class NotificationService extends GetxService {
 
     await scheduleNotification(
       id: 1001,
-      title: '经期提醒'.tr,
-      body: '您的经期预计在 $daysBefore 天后到来，请做好准备。',
+      title: 'period_reminder_title'.tr,
+      body: 'period_reminder_body'.trParams({'days': '$daysBefore'}),
       scheduledDate: reminderDate,
       payload: 'period_reminder',
     );
@@ -173,8 +173,8 @@ class NotificationService extends GetxService {
 
     await scheduleNotification(
       id: 1002,
-      title: '排卵期提醒'.tr,
-      body: '您的排卵期预计在 $daysBefore 天后到来。',
+      title: 'ovulation_reminder_title'.tr,
+      body: 'ovulation_reminder_body'.trParams({'days': '$daysBefore'}),
       scheduledDate: reminderDate,
       payload: 'ovulation_reminder',
     );

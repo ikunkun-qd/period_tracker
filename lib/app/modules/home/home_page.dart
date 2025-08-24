@@ -115,12 +115,14 @@ class HomePage extends GetView<HomeController> {
                         color: controller.currentPhaseColor.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Text(
-                      controller.currentPhaseText,
-                      style: TextStyle(
-                        color: controller.currentPhaseColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                    child: Obx(
+                      () => Text(
+                        controller.currentPhaseText,
+                        style: TextStyle(
+                          color: controller.currentPhaseColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -361,26 +363,29 @@ class HomePage extends GetView<HomeController> {
               final statusChips = <Widget>[];
 
               if (controller.isOnPeriod.value) {
-                statusChips.add(_buildStatusChip('经期中', AppTheme.periodColor));
+                statusChips.add(_buildStatusChip('period_active'.tr, AppTheme.periodColor));
               }
 
               if (controller.isOvulating.value) {
-                statusChips.add(_buildStatusChip('排卵期', AppTheme.ovulationColor));
+                statusChips.add(_buildStatusChip('ovulation_period'.tr, AppTheme.ovulationColor));
               }
 
               if (controller.isFertile.value && !controller.isOvulating.value) {
-                statusChips.add(_buildStatusChip('易孕期', AppTheme.fertileColor));
+                statusChips.add(_buildStatusChip('fertile_window'.tr, AppTheme.fertileColor));
               }
 
               if (!controller.isOnPeriod.value &&
                   !controller.isOvulating.value &&
                   !controller.isFertile.value) {
-                statusChips.add(_buildStatusChip('安全期', AppTheme.safeColor));
+                statusChips.add(_buildStatusChip('safe_period'.tr, AppTheme.safeColor));
               }
 
               if (statusChips.isEmpty) {
                 statusChips.add(
-                  _buildStatusChip(controller.currentPhaseText, controller.currentPhaseColor),
+                  Obx(
+                    () =>
+                        _buildStatusChip(controller.currentPhaseText, controller.currentPhaseColor),
+                  ),
                 );
               }
 
@@ -474,20 +479,20 @@ class HomePage extends GetView<HomeController> {
             ),
             const SizedBox(height: 15),
             Obx(() {
-              String tip = '记得保持健康的生活方式。';
+              String tip = 'health_tip_default'.tr;
               IconData icon = Icons.lightbulb;
               Color color = Colors.orange;
 
               if (controller.isOnPeriod.value) {
-                tip = '经期期间注意休息，适当补充铁质，避免剧烈运动。';
+                tip = 'health_tip_period'.tr;
                 icon = Icons.water_drop;
                 color = AppTheme.periodColor;
               } else if (controller.isOvulating.value) {
-                tip = '排卵期是最佳受孕时期，如有计划请把握机会。';
+                tip = 'health_tip_ovulation'.tr;
                 icon = Icons.favorite;
                 color = AppTheme.ovulationColor;
               } else if (controller.isFertile.value) {
-                tip = '易孕期需要注意防护措施，或合理安排同房时间。';
+                tip = 'health_tip_fertile'.tr;
                 icon = Icons.spa;
                 color = AppTheme.fertileColor;
               }

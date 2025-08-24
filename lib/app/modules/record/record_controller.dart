@@ -26,7 +26,7 @@ class RecordController extends GetxController {
 
   // =================== UI控制器 ===================
 
-  /// 备注文本控制器 - 与TextField双向绑定
+  /// 备注文本控制器 - Notes text controller for two-way binding with TextField
   final notesController = TextEditingController();
 
   // =================== 响应式状态变量 ===================
@@ -106,32 +106,62 @@ class RecordController extends GetxController {
   final currentTab = 0.obs;
 
   // 常用选项
-  final List<String> flowColors = ['鲜红', '暗红', '褐色', '粉红', '橙色', '灰色', '黑色'];
-  final List<String> flowTextures = ['液体', '凝块', '纤维状'];
-  final List<String> painLocationList = ['下腹部', '腰部', '背部', '头部', '乳房', '大腿'];
-  final List<String> commonSymptoms = [
-    '乳房胀痛',
-    '腹胀',
-    '水肿',
-    '头痛',
-    '背痛',
-    '关节痛',
-    '易怒',
-    '焦虑',
-    '抑郁',
-    '情绪不稳',
-    '哭泣',
-    '食欲改变',
-    '睡眠问题',
-    '注意力不集中',
-    '社交回避',
-    '疲劳',
-    '恶心',
-    '便秘',
-    '腹泻',
-    '皮肤问题',
+  List<String> get flowColors => [
+    'flow_color_bright_red'.tr,
+    'flow_color_dark_red'.tr,
+    'flow_color_brown'.tr,
+    'flow_color_pink'.tr,
+    'flow_color_orange'.tr,
+    'flow_color_gray'.tr,
+    'flow_color_black'.tr,
   ];
-  final List<String> exerciseTypes = ['有氧运动', '无氧运动', '瑜伽', '普拉提', '游泳', '跑步', '骑行', '散步'];
+
+  List<String> get flowTextures => [
+    'flow_texture_liquid'.tr,
+    'flow_texture_clots'.tr,
+    'flow_texture_stringy'.tr,
+  ];
+
+  List<String> get painLocationList => [
+    'pain_location_lower_abdomen'.tr,
+    'pain_location_lower_back'.tr,
+    'pain_location_back'.tr,
+    'pain_location_head'.tr,
+    'pain_location_breast'.tr,
+    'pain_location_thigh'.tr,
+  ];
+  List<String> get commonSymptoms => [
+    'symptom_breast_tenderness'.tr,
+    'symptom_bloating'.tr,
+    'symptom_swelling'.tr,
+    'symptom_headache'.tr,
+    'symptom_back_pain'.tr,
+    'symptom_joint_pain'.tr,
+    'symptom_irritability'.tr,
+    'symptom_anxiety'.tr,
+    'symptom_depression'.tr,
+    'symptom_mood_instability'.tr,
+    'symptom_crying'.tr,
+    'symptom_appetite_changes'.tr,
+    'symptom_sleep_issues'.tr,
+    'symptom_concentration_issues'.tr,
+    'symptom_social_withdrawal'.tr,
+    'symptom_fatigue'.tr,
+    'symptom_nausea'.tr,
+    'symptom_constipation'.tr,
+    'symptom_diarrhea'.tr,
+    'symptom_skin_issues'.tr,
+  ];
+  List<String> get exerciseTypes => [
+    'exercise_cardio'.tr,
+    'exercise_strength'.tr,
+    'exercise_yoga'.tr,
+    'exercise_pilates'.tr,
+    'exercise_swimming'.tr,
+    'exercise_running'.tr,
+    'exercise_cycling'.tr,
+    'exercise_walking'.tr,
+  ];
 
   @override
   void onInit() {
@@ -165,7 +195,7 @@ class RecordController extends GetxController {
         // 限制最多选择10个症状
         symptoms.add(symptom);
       } else {
-        ErrorHandler.showWarning('最多只能选择10个症状');
+        ErrorHandler.showWarning('max_symptoms_limit'.tr);
       }
     }
   }
@@ -173,9 +203,9 @@ class RecordController extends GetxController {
   void updateNotes(String text) {
     if (text.length <= 200) {
       notes.value = text;
-      notesController.text = text; // 同步更新文本控制器
+      notesController.text = text; // Sync update text controller
     } else {
-      ErrorHandler.showWarning('笔记内容不能超过200个字符');
+      ErrorHandler.showWarning('notes_length_limit'.tr);
     }
   }
 
@@ -184,16 +214,16 @@ class RecordController extends GetxController {
     if (hasUnsavedChanges) {
       Get.dialog(
         AlertDialog(
-          title: const Text('确认重置'),
-          content: const Text('确定要重置所有数据吗？此操作不可撤销。'),
+          title: Text('confirm_reset'.tr),
+          content: Text('confirm_reset_message'.tr),
           actions: [
-            TextButton(onPressed: () => Get.back(), child: const Text('取消')),
+            TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
             TextButton(
               onPressed: () {
                 Get.back();
                 _performReset();
               },
-              child: const Text('确认'),
+              child: Text('confirm'.tr),
             ),
           ],
         ),
@@ -211,7 +241,7 @@ class RecordController extends GetxController {
     symptoms.clear();
     notes.value = '';
     notesController.clear(); // 清空文本控制器
-    ErrorHandler.showInfo('数据已重置');
+    ErrorHandler.showInfo('data_reset_success'.tr);
   }
 
   /// 加载指定日期的记录
@@ -242,13 +272,13 @@ class RecordController extends GetxController {
           notes.value = record.notes ?? '';
           notesController.text = notes.value;
 
-          debugPrint('记录加载完成: 日期=${date.toIso8601String().split('T')[0]}');
+          debugPrint('Record loaded successfully: date=${date.toIso8601String().split('T')[0]}');
         } else {
           resetData();
-          debugPrint('该日期无记录，已重置数据');
+          debugPrint('No record for this date, data has been reset');
         }
       },
-      errorMessage: '加载记录失败',
+      errorMessage: 'load_record_failed'.tr,
       showSnackbar: false,
     );
 
@@ -258,7 +288,7 @@ class RecordController extends GetxController {
   /// 验证数据完整性
   bool validateData() {
     if (selectedDate.value.isAfter(DateTime.now())) {
-      ErrorHandler.showError('不能记录未来的日期');
+      ErrorHandler.showError('cannot_record_future_date'.tr);
       return false;
     }
 
@@ -291,10 +321,10 @@ class RecordController extends GetxController {
       // 使用数据库服务的方法保存记录
       await _databaseService.upsertDailyRecord(record);
 
-      ErrorHandler.showSuccess('记录已保存');
+      ErrorHandler.showSuccess('record_saved_success'.tr);
     } catch (error) {
-      debugPrint('保存记录错误: $error');
-      ErrorHandler.showError('保存记录失败：$error');
+      debugPrint('Save record error: $error');
+      ErrorHandler.showError('save_record_failed'.trParams({'error': '$error'}));
     } finally {
       isLoading.value = false;
     }

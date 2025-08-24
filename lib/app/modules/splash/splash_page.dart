@@ -39,16 +39,20 @@ class SplashPage extends GetView<SplashController> {
             const SizedBox(height: 30),
 
             // 应用名称
-            const Text(
-              '生理期追踪',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+            Text(
+              'app_name'.tr,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
 
             const SizedBox(height: 10),
 
             // 应用描述
             Text(
-              '记录、预测和管理您的生理周期',
+              'about_app_subtitle'.tr,
               style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.8)),
               textAlign: TextAlign.center,
             ),

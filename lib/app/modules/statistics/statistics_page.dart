@@ -48,11 +48,11 @@ class StatisticsPage extends GetView<StatisticsController> {
                   const SizedBox(height: 8),
                   Obx(
                     () => Text(
-                      '${controller.averageCycleLength.value}天',
+                      'days_count'.trParams({'count': '${controller.averageCycleLength.value}'}),
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const Text('平均周期', style: TextStyle(color: Colors.grey)),
+                  Text('average_cycle'.tr, style: const TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -69,11 +69,11 @@ class StatisticsPage extends GetView<StatisticsController> {
                   const SizedBox(height: 8),
                   Obx(
                     () => Text(
-                      '${controller.averagePeriodLength.value}天',
+                      'days_count'.trParams({'count': '${controller.averagePeriodLength.value}'}),
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const Text('平均经期', style: TextStyle(color: Colors.grey)),
+                  Text('average_period'.tr, style: const TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -90,7 +90,10 @@ class StatisticsPage extends GetView<StatisticsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('周期趋势', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'cycle_trend'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               height: 200,
@@ -111,8 +114,19 @@ class StatisticsPage extends GetView<StatisticsController> {
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
+                          reservedSize: 40,
+                          interval: 1,
                           getTitlesWidget: (value, meta) {
-                            return Text('${value.toInt() + 1}月');
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                'month_number'.trParams({'month': '${value.toInt() + 1}'}),
+                                style: const TextStyle(fontSize: 10),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.visible,
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -150,10 +164,13 @@ class StatisticsPage extends GetView<StatisticsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('症状统计', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'symptoms_statistics'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             SizedBox(
-              height: 200,
+              height: 250,
               child: Obx(
                 () => BarChart(
                   BarChartData(
@@ -170,14 +187,20 @@ class StatisticsPage extends GetView<StatisticsController> {
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
+                          reservedSize: 50,
+                          interval: 1,
                           getTitlesWidget: (value, meta) {
                             final symptoms = controller.symptomsData.keys.toList();
                             if (value.toInt() < symptoms.length) {
-                              return Padding(
+                              return Container(
+                                width: 40,
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Text(
-                                  symptoms[value.toInt()],
-                                  style: const TextStyle(fontSize: 10),
+                                  symptoms[value.toInt()].tr,
+                                  style: const TextStyle(fontSize: 9),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               );
                             }
@@ -233,7 +256,10 @@ class StatisticsPage extends GetView<StatisticsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('周期规律性', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'cycle_regularity'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -243,7 +269,7 @@ class StatisticsPage extends GetView<StatisticsController> {
                     children: [
                       Obx(
                         () => Text(
-                          '${controller.cycleRegularityScore}分',
+                          'score_points'.trParams({'score': '${controller.cycleRegularityScore}'}),
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -251,9 +277,13 @@ class StatisticsPage extends GetView<StatisticsController> {
                           ),
                         ),
                       ),
-                      const Text('规律性评分'),
+                      Text('regularity_score'.tr),
                       const SizedBox(height: 10),
-                      Obx(() => Text('最常见症状: ${controller.mostCommonSymptom}')),
+                      Obx(
+                        () => Text(
+                          'most_common_symptom'.trParams({'symptom': controller.mostCommonSymptom}),
+                        ),
+                      ),
                     ],
                   ),
                 ),

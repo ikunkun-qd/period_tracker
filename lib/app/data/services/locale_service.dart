@@ -40,7 +40,7 @@ class LocaleService extends GetxController {
         await _databaseService.setUserSetting('language', defaultLanguage);
       }
     } catch (e) {
-      debugPrint('加载语言设置失败: $e');
+      debugPrint('Failed to load language settings: $e');
       // 出错时使用默认中文
       currentLanguage.value = 'zh_CN';
       await _applyLanguage('zh_CN');
@@ -64,17 +64,19 @@ class LocaleService extends GetxController {
       // 保存到数据库
       await _databaseService.setUserSetting('language', languageCode);
 
-      // 显示成功提示
-      Get.snackbar(
-        'success'.tr,
-        languageCode == 'zh_CN' ? '语言已切换为中文' : 'Language changed to English',
-        duration: const Duration(seconds: 2),
-      );
+      // 延迟显示成功提示，确保语言切换生效
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Get.snackbar(
+          'success'.tr,
+          'language_changed_success'.tr,
+          duration: const Duration(seconds: 2),
+        );
+      });
     } catch (e) {
-      debugPrint('切换语言失败: $e');
+      debugPrint('Failed to change language: $e');
       Get.snackbar(
         'error'.tr,
-        '切换语言失败',
+        'language_change_failed'.tr,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade800,
       );
@@ -106,11 +108,11 @@ class LocaleService extends GetxController {
   String getLanguageDisplayName(String languageCode) {
     switch (languageCode) {
       case 'zh_CN':
-        return '中文';
+        return 'chinese'.tr;
       case 'en_US':
-        return 'English';
+        return 'english'.tr;
       default:
-        return '中文';
+        return 'chinese'.tr;
     }
   }
 }

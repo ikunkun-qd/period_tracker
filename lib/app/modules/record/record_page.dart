@@ -17,7 +17,7 @@ class RecordPage extends GetView<RecordController> {
         actions: [
           TextButton(
             onPressed: controller.saveRecord,
-            child: const Text('保存', style: TextStyle(color: Colors.white)),
+            child: Text('save'.tr, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -63,7 +63,10 @@ class RecordPage extends GetView<RecordController> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('记录完整度', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text(
+                    'record_completeness'.tr,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
                   Text(
                     '${controller.completionPercentage}%',
                     style: TextStyle(
@@ -82,7 +85,9 @@ class RecordPage extends GetView<RecordController> {
               ),
               const SizedBox(height: 4),
               Text(
-                controller.completionPercentage == 100 ? '记录完整！' : '继续完善记录以获得更准确的分析',
+                controller.completionPercentage == 100
+                    ? 'record_complete'.tr
+                    : 'continue_improving_record'.tr,
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
@@ -96,10 +101,14 @@ class RecordPage extends GetView<RecordController> {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.calendar_today),
-        title: const Text('选择日期'),
+        title: Text('select_date'.tr),
         subtitle: Obx(
           () => Text(
-            '${controller.selectedDate.value.year}年${controller.selectedDate.value.month}月${controller.selectedDate.value.day}日',
+            'date_format'.trParams({
+              'year': '${controller.selectedDate.value.year}',
+              'month': '${controller.selectedDate.value.month}',
+              'day': '${controller.selectedDate.value.day}',
+            }),
           ),
         ),
         onTap: () async {
@@ -108,7 +117,7 @@ class RecordPage extends GetView<RecordController> {
             initialDate: controller.selectedDate.value,
             firstDate: DateTime(2020),
             lastDate: DateTime.now(),
-            locale: const Locale('zh', 'CN'),
+            locale: Get.locale,
           );
           if (date != null) {
             controller.onDateChanged(date);
@@ -120,10 +129,10 @@ class RecordPage extends GetView<RecordController> {
 
   Widget _buildFlowLevelSection() {
     final flowLevels = [
-      {'name': '轻微', 'desc': '点滴状', 'icon': '💧'},
-      {'name': '正常', 'desc': '适中', 'icon': '💧💧'},
-      {'name': '偏重', 'desc': '较多', 'icon': '💧💧💧'},
-      {'name': '很重', 'desc': '大量', 'icon': '💧💧💧💧'},
+      {'name': 'flow_light'.tr, 'desc': 'flow_light_desc'.tr, 'icon': '💧'},
+      {'name': 'flow_normal'.tr, 'desc': 'flow_normal_desc'.tr, 'icon': '💧💧'},
+      {'name': 'flow_heavy'.tr, 'desc': 'flow_heavy_desc'.tr, 'icon': '💧💧💧'},
+      {'name': 'flow_very_heavy'.tr, 'desc': 'flow_very_heavy_desc'.tr, 'icon': '💧💧💧💧'},
     ];
 
     return Card(
@@ -135,7 +144,10 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('流量等级', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  'flow_level'.tr,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 Obx(
                   () => controller.flowLevel.value > 0
                       ? Text(
@@ -214,11 +226,11 @@ class RecordPage extends GetView<RecordController> {
 
   Widget _buildPainLevelSection() {
     String getPainDescription(int level) {
-      if (level == 0) return '无疼痛';
-      if (level <= 3) return '轻微疼痛';
-      if (level <= 6) return '中度疼痛';
-      if (level <= 8) return '重度疼痛';
-      return '剧烈疼痛';
+      if (level == 0) return 'no_pain'.tr;
+      if (level <= 3) return 'mild_pain'.tr;
+      if (level <= 6) return 'moderate_pain'.tr;
+      if (level <= 8) return 'severe_pain'.tr;
+      return 'extreme_pain'.tr;
     }
 
     Color getPainColor(int level) {
@@ -238,7 +250,10 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('疼痛程度', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  'pain_level'.tr,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 Obx(
                   () => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -285,8 +300,11 @@ class RecordPage extends GetView<RecordController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('无痛', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      Text('剧痛', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      Text('no_pain'.tr, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      Text(
+                        'extreme_pain'.tr,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -309,11 +327,11 @@ class RecordPage extends GetView<RecordController> {
 
   Widget _buildMoodSection() {
     final moods = [
-      {'emoji': '😢', 'name': '很难过', 'color': Colors.blue[400]!},
-      {'emoji': '😕', 'name': '有点低落', 'color': Colors.blue[300]!},
-      {'emoji': '😐', 'name': '一般', 'color': Colors.grey[500]!},
-      {'emoji': '😊', 'name': '不错', 'color': Colors.green[400]!},
-      {'emoji': '😄', 'name': '很开心', 'color': Colors.green[600]!},
+      {'emoji': '😢', 'name': 'mood_very_sad'.tr, 'color': Colors.blue[400]!},
+      {'emoji': '😕', 'name': 'mood_sad'.tr, 'color': Colors.blue[300]!},
+      {'emoji': '😐', 'name': 'mood_neutral'.tr, 'color': Colors.grey[500]!},
+      {'emoji': '😊', 'name': 'mood_good'.tr, 'color': Colors.green[400]!},
+      {'emoji': '😄', 'name': 'mood_very_happy'.tr, 'color': Colors.green[600]!},
     ];
 
     return Card(
@@ -325,7 +343,7 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('心情', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('mood'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Obx(
                   () => controller.mood.value > 0
                       ? Text(
@@ -399,18 +417,18 @@ class RecordPage extends GetView<RecordController> {
 
   Widget _buildSymptomsSection() {
     final symptomsList = [
-      '痉挛',
-      '头痛',
-      '乳房胀痛',
-      '腹胀',
-      '疲劳',
-      '恶心',
-      '腰痛',
-      '失眠',
-      '情绪波动',
-      '食欲变化',
-      '皮肤问题',
-      '其他',
+      'symptom_cramps'.tr,
+      'symptom_headache'.tr,
+      'symptom_breast_tenderness'.tr,
+      'symptom_bloating'.tr,
+      'symptom_fatigue'.tr,
+      'symptom_nausea'.tr,
+      'symptom_back_pain'.tr,
+      'symptom_insomnia'.tr,
+      'symptom_mood_swings'.tr,
+      'symptom_appetite_changes'.tr,
+      'symptom_skin_issues'.tr,
+      'symptom_other'.tr,
     ];
     return Card(
       child: Padding(
@@ -421,10 +439,13 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('症状', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  'symptoms'.tr,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 Obx(
                   () => Text(
-                    '已选择 ${controller.symptoms.length} 项',
+                    'selected_count'.trParams({'count': '${controller.symptoms.length}'}),
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ),
@@ -475,7 +496,10 @@ class RecordPage extends GetView<RecordController> {
                 children: [
                   Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 4),
-                  Text('点击已选择的症状可以取消选择', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                  Text(
+                    'tap_to_deselect_symptom'.tr,
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  ),
                 ],
               ),
             ],
@@ -495,7 +519,7 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('备注', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('notes'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Obx(
                   () => Text(
                     '${controller.notes.value.length}/200',
@@ -513,13 +537,13 @@ class RecordPage extends GetView<RecordController> {
               maxLines: 4,
               maxLength: 200,
               decoration: InputDecoration(
-                hintText: '记录今天的感受、症状变化或其他想要记录的内容...',
+                hintText: 'notes_hint'.tr,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
                 ),
-                counterText: '', // 隐藏默认计数器
+                counterText: '', // Hide default counter
                 prefixIcon: const Icon(Icons.edit_note),
               ),
               onChanged: controller.updateNotes,
@@ -528,10 +552,10 @@ class RecordPage extends GetView<RecordController> {
             Wrap(
               spacing: 8,
               children: [
-                _buildQuickNoteChip('感觉不错'),
-                _buildQuickNoteChip('有点累'),
-                _buildQuickNoteChip('睡眠不好'),
-                _buildQuickNoteChip('食欲不振'),
+                _buildQuickNoteChip('feeling_good'.tr),
+                _buildQuickNoteChip('feeling_tired'.tr),
+                _buildQuickNoteChip('sleep_poor'.tr),
+                _buildQuickNoteChip('appetite_poor'.tr),
               ],
             ),
           ],
@@ -562,7 +586,7 @@ class RecordPage extends GetView<RecordController> {
           child: OutlinedButton.icon(
             onPressed: controller.resetData,
             icon: const Icon(Icons.refresh),
-            label: const Text('重置'),
+            label: Text('reset'.tr),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
               side: BorderSide(color: Colors.grey[400]!),
@@ -582,7 +606,7 @@ class RecordPage extends GetView<RecordController> {
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.save),
-              label: Text(controller.isLoading.value ? '保存中...' : '保存记录'),
+              label: Text(controller.isLoading.value ? 'saving'.tr : 'save_record'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,

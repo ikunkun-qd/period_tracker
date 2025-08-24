@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:get/get.dart';
 import '../data/models/models.dart';
 import 'date_calculator.dart';
 
@@ -248,11 +249,11 @@ class CyclePredictor {
 
   /// 获取规律性建议
   static String _getRegularityRecommendation(double score) {
-    if (score >= 0.8) return '您的周期很规律，请继续保持健康的生活方式';
-    if (score >= 0.6) return '周期相对规律，注意保持良好的作息和饮食习惯';
-    if (score >= 0.4) return '周期有一定波动，建议记录更多影响因素如压力、运动等';
-    if (score >= 0.2) return '周期不够规律，建议咨询医生并记录详细的生活习惯';
-    return '周期很不规律，强烈建议尽快咨询专业医生';
+    if (score >= 0.8) return 'regularity_excellent'.tr;
+    if (score >= 0.6) return 'regularity_good'.tr;
+    if (score >= 0.4) return 'regularity_moderate'.tr;
+    if (score >= 0.2) return 'regularity_poor'.tr;
+    return 'regularity_very_poor'.tr;
   }
 }
 

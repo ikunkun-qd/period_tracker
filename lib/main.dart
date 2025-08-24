@@ -27,7 +27,7 @@ void main() async {
       );
     }
   } catch (e) {
-    debugPrint('初始化时出错: $e');
+    debugPrint('Initialization error: $e');
   }
 
   runApp(const PeriodTrackerApp());
@@ -48,7 +48,7 @@ Future<void> _initServices() async {
     // 初始化周期服务
     await Get.putAsync(() => CycleService().init());
   } catch (e) {
-    debugPrint('服务初始化失败: $e');
+    debugPrint('Service initialization failed: $e');
   }
 }
 

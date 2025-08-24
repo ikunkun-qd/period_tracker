@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../routes/app_pages.dart';
 import '../../data/services/cycle_service.dart';
 import '../../utils/cycle_predictor.dart';
+import '../../utils/error_handler.dart';
 
 /// 主页控制器 - 管理首页的状态和业务逻辑
 ///
@@ -105,14 +106,11 @@ class HomeController extends GetxController {
 
   /// 加载数据
   Future<void> _loadData() async {
-    try {
-      isLoading.value = true;
+    isLoading.value = true;
+    await ErrorHandler.handleAsync(() async {
       await Future.wait([_loadCycleOverview()]);
-    } catch (e) {
-      debugPrint('加载数据失败: $e');
-    } finally {
-      isLoading.value = false;
-    }
+    }, errorMessage: 'load_data_failed'.tr);
+    isLoading.value = false;
   }
 
   /// 加载周期概览数据
@@ -141,11 +139,13 @@ class HomeController extends GetxController {
           overview.currentPhase == CyclePhase.ovulation ||
           overview.currentPhase == CyclePhase.follicular;
 
-      debugPrint('周期概览加载完成: isOnPeriod=${isOnPeriod.value}, phase=${currentPhase.value}');
+      debugPrint(
+        'Cycle overview loaded: isOnPeriod=${isOnPeriod.value}, phase=${currentPhase.value}',
+      );
     } catch (e) {
-      debugPrint('加载周期概览失败: $e');
+      debugPrint('Failed to load cycle overview: $e');
 
-      // 设置默认值
+      // Set default values
       final defaultOverview = CycleOverview(
         currentPhase: CyclePhase.unknown,
         isOnPeriod: false,
@@ -160,7 +160,7 @@ class HomeController extends GetxController {
       currentCycleDay.value = 1;
       daysUntilNextPeriod.value = 0;
 
-      // 重置计算状态
+      // Reset calculation state
       isOvulating.value = false;
       isFertile.value = false;
     } finally {
@@ -251,9 +251,9 @@ class HomeController extends GetxController {
   /// 快速结束经期
   Future<void> quickEndPeriod() async {
     try {
-      debugPrint('开始结束经期操作');
+      debugPrint('Starting end period operation');
       await _cycleService.endCurrentPeriod(DateTime.now());
-      debugPrint('经期结束操作完成');
+      debugPrint('End period operation completed');
 
       Get.snackbar('success'.tr, 'period_ended'.tr);
 
@@ -266,9 +266,9 @@ class HomeController extends GetxController {
       // 额外的强制刷新
       cycleOverview.refresh();
 
-      debugPrint('UI状态更新完成, isOnPeriod=${isOnPeriod.value}');
+      debugPrint('UI state update completed, isOnPeriod=${isOnPeriod.value}');
     } catch (e) {
-      debugPrint('结束经期失败: $e');
+      debugPrint('Failed to end period: $e');
       Get.snackbar('error'.tr, '${'error'.tr}: $e');
     }
   }

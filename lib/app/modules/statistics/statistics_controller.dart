@@ -118,10 +118,25 @@ class StatisticsController extends GetxController {
     }
 
     // 模拟症状数据（实际应用中从数据库获取）
-    symptomsData.value = {'痉挛': 15, '头痛': 8, '乳房胀痛': 12, '腹胀': 10, '疲劳': 18, '恶心': 5};
+    // 注意：这里存储的是症状的翻译key，而不是翻译后的文本，
+    // 这样可以在切换语言时，UI 直接使用 .tr 动态显示对应语言
+    symptomsData.value = {
+      'symptom_cramps': 15,
+      'symptom_headache': 8,
+      'symptom_breast_tenderness': 12,
+      'symptom_bloating': 10,
+      'symptom_fatigue': 18,
+      'symptom_nausea': 5,
+    };
 
     // 模拟心情数据
-    moodData.value = {'很好': 5, '好': 12, '一般': 8, '差': 6, '很差': 3};
+    moodData.value = {
+      'mood_very_good'.tr: 5,
+      'mood_good'.tr: 12,
+      'mood_average'.tr: 8,
+      'mood_bad'.tr: 6,
+      'mood_very_bad'.tr: 3,
+    };
   }
 
   /// 刷新数据
@@ -138,39 +153,39 @@ class StatisticsController extends GetxController {
 
   /// 获取规律性描述
   String get regularityDescription {
-    return cycleRegularity.value?.description ?? '数据不足';
+    return cycleRegularity.value?.description ?? 'insufficient_data'.tr;
   }
 
   /// 获取规律性建议
   String get regularityRecommendation {
-    return cycleRegularity.value?.recommendation ?? '请继续记录周期数据';
+    return cycleRegularity.value?.recommendation ?? 'continue_recording'.tr;
   }
 
-  /// 获取最常见症状
+  /// 获取最常见症状（根据当前语言返回翻译后的文本）
   String get mostCommonSymptom {
-    if (symptomsData.isEmpty) return '无';
+    if (symptomsData.isEmpty) return 'none'.tr;
     final sortedSymptoms = symptomsData.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return sortedSymptoms.first.key;
+    return sortedSymptoms.first.key.tr;
   }
 
   /// 获取最近周期变化趋势
   String get cycleTrend {
-    if (cycleLengthData.length < 3) return '数据不足';
+    if (cycleLengthData.length < 3) return 'insufficient_data'.tr;
 
     final recent = cycleLengthData.take(3).toList();
     final older = cycleLengthData.skip(3).take(3).toList();
 
-    if (older.isEmpty) return '数据不足';
+    if (older.isEmpty) return 'insufficient_data'.tr;
 
     final recentAvg = recent.reduce((a, b) => a + b) / recent.length;
     final olderAvg = older.reduce((a, b) => a + b) / older.length;
 
     final diff = recentAvg - olderAvg;
 
-    if (diff > 1) return '周期在延长';
-    if (diff < -1) return '周期在缩短';
-    return '周期稳定';
+    if (diff > 1) return 'cycle_lengthening'.tr;
+    if (diff < -1) return 'cycle_shortening'.tr;
+    return 'cycle_stable'.tr;
   }
 
   /// 获取健康评分
@@ -207,11 +222,11 @@ class StatisticsController extends GetxController {
       // 获取周期数据用于生成报告
       await _cycleService.exportCycleData();
 
-      debugPrint('统计报告导出完成');
-      return '统计报告导出成功';
+      debugPrint('Statistics report export completed');
+      return 'export_success'.tr;
     } catch (e) {
-      debugPrint('统计报告导出失败: $e');
-      return '导出失败: $e';
+      debugPrint('Statistics report export failed: $e');
+      return 'export_failed'.trParams({'error': '$e'});
     }
   }
 }

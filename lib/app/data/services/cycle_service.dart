@@ -39,7 +39,7 @@ class CycleService extends GetxService {
   ///
   /// 在应用启动时调用，进行必要的初始化工作
   Future<CycleService> init() async {
-    debugPrint('CycleService 初始化完成');
+    debugPrint('CycleService initialization completed');
     return this;
   }
 
@@ -49,7 +49,7 @@ class CycleService extends GetxService {
   void _clearCache() {
     _cachedPeriods = null;
     _lastCacheUpdate = null;
-    debugPrint('CycleService 缓存已清除');
+    debugPrint('CycleService cache cleared');
   }
 
   /// 检查缓存是否有效
@@ -168,19 +168,19 @@ class CycleService extends GetxService {
   Future<List<PeriodRecord>> getAllPeriods() async {
     // 检查缓存是否有效
     if (_isCacheValid()) {
-      debugPrint('使用缓存的经期记录数据');
+      debugPrint('Using cached period record data');
       return _cachedPeriods!;
     }
 
     // 从数据库获取最新数据
-    debugPrint('从数据库获取经期记录');
+    debugPrint('Fetching period records from database');
     final periods = await _databaseService.getAllPeriodRecords();
 
     // 更新缓存
     _cachedPeriods = periods;
     _lastCacheUpdate = DateTime.now();
 
-    debugPrint('经期记录缓存已更新，共${periods.length}条记录');
+    debugPrint('Period record cache updated, total ${periods.length} records');
     return periods;
   }
 
@@ -298,7 +298,7 @@ class CycleService extends GetxService {
       totalCycles: periods.length,
     );
 
-    debugPrint('周期概览结果: isOnPeriod=${overview.isOnPeriod}');
+    debugPrint('Cycle overview result: isOnPeriod=${overview.isOnPeriod}');
     return overview;
   }
 

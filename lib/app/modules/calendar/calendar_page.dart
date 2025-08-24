@@ -95,7 +95,7 @@ class CalendarPage extends GetView<CalendarController> {
           calendarFormat: controller.calendarFormat.value,
           eventLoader: controller.getEventsForDay,
           startingDayOfWeek: StartingDayOfWeek.monday,
-          locale: 'zh_CN',
+          locale: Get.locale?.languageCode ?? 'zh',
           calendarStyle: CalendarStyle(
             outsideDaysVisible: false,
             weekendTextStyle: TextStyle(
@@ -259,18 +259,18 @@ class CalendarPage extends GetView<CalendarController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('图例', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('legend'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 16,
               runSpacing: 8,
               children: [
-                _buildLegendItem('经期', AppTheme.periodColor),
-                _buildLegendItem('排卵期', AppTheme.ovulationColor),
-                _buildLegendItem('易孕期', AppTheme.fertileColor),
-                _buildLegendItem('安全期', AppTheme.safeColor),
-                _buildLegendItem('预测', Colors.grey, isDashed: true),
-                _buildLegendItem('有记录', Colors.orange, showDot: true),
+                _buildLegendItem('period_active'.tr, AppTheme.periodColor),
+                _buildLegendItem('ovulation_period'.tr, AppTheme.ovulationColor),
+                _buildLegendItem('fertile_window'.tr, AppTheme.fertileColor),
+                _buildLegendItem('safe_period'.tr, AppTheme.safeColor),
+                _buildLegendItem('predicted'.tr, Colors.grey, isDashed: true),
+                _buildLegendItem('has_record'.tr, Colors.orange, showDot: true),
               ],
             ),
           ],
@@ -335,7 +335,10 @@ class CalendarPage extends GetView<CalendarController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('选中日期信息', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'selected_date_info'.tr,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               _buildSelectedDayInfoChips(),
             ],
@@ -354,26 +357,34 @@ class CalendarPage extends GetView<CalendarController> {
 
     // 日期信息
     chips.add(
-      _buildInfoChip('${day.year}年${day.month}月${day.day}日', Colors.blue, Icons.calendar_today),
+      _buildInfoChip(
+        'date_format'.trParams({
+          'year': '${day.year}',
+          'month': '${day.month}',
+          'day': '${day.day}',
+        }),
+        Colors.blue,
+        Icons.calendar_today,
+      ),
     );
 
     // 周期状态
     if (events.contains('period')) {
-      chips.add(_buildInfoChip('经期中', AppTheme.periodColor, Icons.water_drop));
+      chips.add(_buildInfoChip('period_active'.tr, AppTheme.periodColor, Icons.water_drop));
     } else if (events.contains('predicted_period')) {
       chips.add(
         _buildInfoChip(
-          '预测经期',
+          'predicted_period'.tr,
           AppTheme.periodColor.withValues(alpha: 0.7),
           Icons.water_drop_outlined,
         ),
       );
     } else if (events.contains('ovulation') || events.contains('predicted_ovulation')) {
-      chips.add(_buildInfoChip('排卵期', AppTheme.ovulationColor, Icons.favorite));
+      chips.add(_buildInfoChip('ovulation_period'.tr, AppTheme.ovulationColor, Icons.favorite));
     } else if (events.contains('fertile')) {
-      chips.add(_buildInfoChip('易孕期', AppTheme.fertileColor, Icons.spa));
+      chips.add(_buildInfoChip('fertile_window'.tr, AppTheme.fertileColor, Icons.spa));
     } else {
-      chips.add(_buildInfoChip('安全期', AppTheme.safeColor, Icons.shield));
+      chips.add(_buildInfoChip('safe_period'.tr, AppTheme.safeColor, Icons.shield));
     }
 
     // 记录信息
@@ -381,7 +392,7 @@ class CalendarPage extends GetView<CalendarController> {
       if (record.flowLevel != null && record.flowLevel! > 0) {
         chips.add(
           _buildInfoChip(
-            '流量: ${_getFlowLevelText(record.flowLevel!)}',
+            'flow_info'.trParams({'level': _getFlowLevelText(record.flowLevel!)}),
             Colors.red.shade300,
             Icons.opacity,
           ),
@@ -389,16 +400,24 @@ class CalendarPage extends GetView<CalendarController> {
       }
       if (record.painLevel != null && record.painLevel! > 0) {
         chips.add(
-          _buildInfoChip('疼痛: ${record.painLevel}/10', Colors.orange.shade300, Icons.healing),
+          _buildInfoChip(
+            'pain_info'.trParams({'level': '${record.painLevel}'}),
+            Colors.orange.shade300,
+            Icons.healing,
+          ),
         );
       }
       if (record.mood != null && record.mood! > 0) {
         chips.add(
-          _buildInfoChip('心情: ${_getMoodText(record.mood!)}', Colors.green.shade300, Icons.mood),
+          _buildInfoChip(
+            'mood_info'.trParams({'mood': _getMoodText(record.mood!)}),
+            Colors.green.shade300,
+            Icons.mood,
+          ),
         );
       }
     } else {
-      chips.add(_buildInfoChip('暂无记录', Colors.grey.shade300, Icons.info_outline));
+      chips.add(_buildInfoChip('no_record'.tr, Colors.grey.shade300, Icons.info_outline));
     }
 
     return Wrap(
@@ -446,17 +465,17 @@ class CalendarPage extends GetView<CalendarController> {
   String _getFlowLevelText(int level) {
     switch (level) {
       case 1:
-        return '点滴';
+        return 'flow_spotting'.tr;
       case 2:
-        return '轻微';
+        return 'flow_light'.tr;
       case 3:
-        return '正常';
+        return 'flow_normal'.tr;
       case 4:
-        return '较多';
+        return 'flow_heavy'.tr;
       case 5:
-        return '很多';
+        return 'flow_very_heavy'.tr;
       default:
-        return '未知';
+        return 'unknown'.tr;
     }
   }
 
@@ -464,17 +483,17 @@ class CalendarPage extends GetView<CalendarController> {
   String _getMoodText(int mood) {
     switch (mood) {
       case 1:
-        return '很差';
+        return 'mood_very_bad'.tr;
       case 2:
-        return '较差';
+        return 'mood_bad'.tr;
       case 3:
-        return '一般';
+        return 'mood_average'.tr;
       case 4:
-        return '较好';
+        return 'mood_good'.tr;
       case 5:
-        return '很好';
+        return 'mood_very_good'.tr;
       default:
-        return '未知';
+        return 'unknown'.tr;
     }
   }
 

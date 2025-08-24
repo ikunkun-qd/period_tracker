@@ -6,9 +6,10 @@ class LoadingManager {
   /// 执行带有加载状态的异步操作
   Future<T> executeWithLoading<T>(
     Future<T> Function() operation, {
-    String loadingText = '加载中...',
+    String? loadingText,
     bool showDialog = true,
   }) async {
+    loadingText ??= 'loading'.tr;
     if (showDialog) {
       Get.dialog(
         AlertDialog(
@@ -40,7 +41,8 @@ class LoadingManager {
   }
 
   /// 显示加载对话框
-  void showLoadingDialog({String text = '加载中...'}) {
+  void showLoadingDialog({String? text}) {
+    text ??= 'loading'.tr;
     Get.dialog(
       AlertDialog(
         content: Row(

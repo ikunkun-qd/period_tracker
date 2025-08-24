@@ -27,7 +27,7 @@ class ErrorHandler {
       _logError(e, stackTrace);
 
       if (showSnackbar) {
-        final message = errorMessage ?? '操作失败，请稍后重试';
+        final message = errorMessage ?? 'operation_failed'.tr;
         showError(message);
       }
 
@@ -47,7 +47,7 @@ class ErrorHandler {
       _logError(e, stackTrace);
 
       if (showSnackbar) {
-        final message = errorMessage ?? '操作失败，请稍后重试';
+        final message = errorMessage ?? 'operation_failed'.tr;
         showError(message);
       }
 
@@ -66,7 +66,7 @@ class ErrorHandler {
   /// 显示成功消息
   static void showSuccess(String message) {
     Get.snackbar(
-      '成功',
+      'success'.tr,
       message,
       backgroundColor: Colors.green,
       colorText: Colors.white,
@@ -78,7 +78,7 @@ class ErrorHandler {
   /// 显示警告消息
   static void showWarning(String message) {
     Get.snackbar(
-      '警告',
+      'warning'.tr,
       message,
       backgroundColor: Colors.orange,
       colorText: Colors.white,
@@ -90,7 +90,7 @@ class ErrorHandler {
   /// 显示信息消息
   static void showInfo(String message) {
     Get.snackbar(
-      '信息',
+      'info'.tr,
       message,
       backgroundColor: Colors.blue,
       colorText: Colors.white,
@@ -102,7 +102,7 @@ class ErrorHandler {
   /// 显示错误消息
   static void showError(String message) {
     Get.snackbar(
-      '错误',
+      'error'.tr,
       message,
       backgroundColor: Colors.red,
       colorText: Colors.white,

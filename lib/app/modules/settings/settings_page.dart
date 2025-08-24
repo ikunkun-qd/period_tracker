@@ -268,7 +268,7 @@ class SettingsPage extends GetView<SettingsController> {
             ),
           ),
         ),
-        actions: [TextButton(onPressed: () => Get.back(), child: const Text('取消'))],
+        actions: [TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr))],
       ),
     );
   }
@@ -301,7 +301,7 @@ class SettingsPage extends GetView<SettingsController> {
             ),
           ),
         ),
-        actions: [TextButton(onPressed: () => Get.back(), child: const Text('取消'))],
+        actions: [TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr))],
       ),
     );
   }

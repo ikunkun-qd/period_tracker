@@ -4,25 +4,28 @@ import 'package:get/get.dart';
 /// 日期格式化工具类
 class DateFormatter {
   static const String defaultDateFormat = 'yyyy-MM-dd';
-  static const String displayDateFormat = 'M月d日';
-  static const String fullDateFormat = 'yyyy年M月d日';
+  static String get displayDateFormat => Get.locale?.languageCode == 'zh' ? 'M月d日' : 'M/d';
+  static String get fullDateFormat => Get.locale?.languageCode == 'zh' ? 'yyyy年M月d日' : 'M/d/yyyy';
   static const String timeFormat = 'HH:mm';
   static const String dateTimeFormat = 'yyyy-MM-dd HH:mm';
   static const String weekdayFormat = 'EEEE';
 
-  /// 获取中文日期格式化器
-  static DateFormat get chineseDateFormat {
-    return DateFormat('yyyy年MM月dd日', 'zh_CN');
+  /// 获取本地化日期格式化器
+  static DateFormat get localizedDateFormat {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? DateFormat('yyyy年MM月dd日', 'zh_CN') : DateFormat('MM/dd/yyyy', 'en_US');
   }
 
-  /// 获取简短中文日期格式化器
-  static DateFormat get shortChineseDateFormat {
-    return DateFormat('MM月dd日', 'zh_CN');
+  /// 获取简短本地化日期格式化器
+  static DateFormat get shortLocalizedDateFormat {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? DateFormat('MM月dd日', 'zh_CN') : DateFormat('MM/dd', 'en_US');
   }
 
   /// 获取年月格式化器
   static DateFormat get yearMonthFormat {
-    return DateFormat('yyyy年MM月', 'zh_CN');
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? DateFormat('yyyy年MM月', 'zh_CN') : DateFormat('MM/yyyy', 'en_US');
   }
 
   /// 格式化日期为默认格式 (yyyy-MM-dd)
@@ -40,14 +43,14 @@ class DateFormatter {
     return DateFormat(fullDateFormat, Get.locale?.languageCode ?? 'zh').format(date);
   }
 
-  /// 格式化日期为中文格式
-  static String formatToChineseDate(DateTime date) {
-    return chineseDateFormat.format(date);
+  /// 格式化日期为本地化格式
+  static String formatToLocalizedDate(DateTime date) {
+    return localizedDateFormat.format(date);
   }
 
-  /// 格式化日期为简短中文格式
-  static String formatToShortChineseDate(DateTime date) {
-    return shortChineseDateFormat.format(date);
+  /// 格式化日期为简短本地化格式
+  static String formatToShortLocalizedDate(DateTime date) {
+    return shortLocalizedDateFormat.format(date);
   }
 
   /// 格式化年月
@@ -57,12 +60,7 @@ class DateFormatter {
 
   /// 根据当前语言环境格式化日期
   static String formatDateByLocale(DateTime date) {
-    final locale = Get.locale;
-    if (locale?.languageCode == 'zh') {
-      return formatToChineseDate(date);
-    } else {
-      return DateFormat('MMM dd, yyyy').format(date);
-    }
+    return localizedDateFormat.format(date);
   }
 
   /// 格式化时间 (HH:mm)
@@ -109,63 +107,72 @@ class DateFormatter {
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
         if (difference.inMinutes == 0) {
-          return '刚刚';
+          return 'just_now'.tr;
         }
-        return '${difference.inMinutes}分钟前';
+        return 'minutes_ago'.trParams({'minutes': '${difference.inMinutes}'});
       }
-      return '${difference.inHours}小时前';
+      return 'hours_ago'.trParams({'hours': '${difference.inHours}'});
     } else if (difference.inDays == 1) {
-      return '昨天';
+      return 'yesterday'.tr;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}天前';
+      return 'days_ago'.trParams({'days': '${difference.inDays}'});
     } else if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
-      return '$weeks周前';
+      return 'weeks_ago'.trParams({'weeks': '$weeks'});
     } else if (difference.inDays < 365) {
       final months = (difference.inDays / 30).floor();
-      return '$months个月前';
+      return 'months_ago'.trParams({'months': '$months'});
     } else {
       final years = (difference.inDays / 365).floor();
-      return '$years年前';
+      return 'years_ago'.trParams({'years': '$years'});
     }
   }
 
   /// 格式化周期天数描述
   static String formatCycleDayDescription(int dayInCycle, int totalCycleDays) {
-    return '周期第$dayInCycle天 / 共$totalCycleDays天';
+    return 'cycle_day_description'.trParams({'current': '$dayInCycle', 'total': '$totalCycleDays'});
   }
 
   /// 格式化经期天数描述
   static String formatPeriodDayDescription(int dayInPeriod) {
-    return '经期第$dayInPeriod天';
+    return 'period_day_description'.trParams({'day': '$dayInPeriod'});
   }
 
   /// 格式化倒计时描述
   static String formatCountdown(int days) {
     if (days == 0) {
-      return '今天';
+      return 'today'.tr;
     } else if (days == 1) {
-      return '明天';
+      return 'tomorrow'.tr;
     } else if (days > 0) {
-      return '$days天后';
+      return 'days_later'.trParams({'days': '$days'});
     } else {
-      return '${-days}天前';
+      return 'days_ago'.trParams({'days': '${-days}'});
     }
   }
 
   /// 格式化月份年份
   static String formatMonthYear(DateTime date) {
-    return DateFormat('yyyy年M月', Get.locale?.languageCode ?? 'zh').format(date);
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh'
+        ? DateFormat('yyyy年M月', 'zh_CN').format(date)
+        : DateFormat('MMM yyyy', 'en_US').format(date);
   }
 
   /// 格式化仅月份
   static String formatMonth(DateTime date) {
-    return DateFormat('M月', Get.locale?.languageCode ?? 'zh').format(date);
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh'
+        ? DateFormat('M月', 'zh_CN').format(date)
+        : DateFormat('MMM', 'en_US').format(date);
   }
 
   /// 格式化仅年份
   static String formatYear(DateTime date) {
-    return DateFormat('yyyy年', Get.locale?.languageCode ?? 'zh').format(date);
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh'
+        ? DateFormat('yyyy年', 'zh_CN').format(date)
+        : DateFormat('yyyy', 'en_US').format(date);
   }
 
   /// 解析日期字符串

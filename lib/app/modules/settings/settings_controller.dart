@@ -134,11 +134,11 @@ class SettingsController extends GetxController {
       // 执行数据导出操作
       await _cycleService.exportCycleData();
 
-      Get.snackbar('成功', '数据导出成功');
-      debugPrint('用户数据导出完成');
+      Get.snackbar('success'.tr, 'export_success'.tr);
+      debugPrint('User data export completed');
     } catch (e) {
-      debugPrint('数据导出失败: $e');
-      Get.snackbar('错误', '导出失败: $e');
+      debugPrint('Data export failed: $e');
+      Get.snackbar('error'.tr, 'export_failed'.trParams({'error': '$e'}));
     } finally {
       isLoading.value = false;
     }
@@ -146,7 +146,7 @@ class SettingsController extends GetxController {
 
   /// 导入数据
   Future<void> importData() async {
-    Get.snackbar('提示', '数据导入功能开发中...');
+    Get.snackbar('info'.tr, 'developing'.tr);
   }
 
   /// 备份数据
@@ -277,7 +277,7 @@ class SettingsController extends GetxController {
           }
         }
       },
-      errorMessage: '加载设置失败',
+      errorMessage: 'load_settings_failed'.tr,
       showSnackbar: false,
     );
   }
@@ -288,7 +288,7 @@ class SettingsController extends GetxController {
       () async {
         await _databaseService.setUserSetting(key, value);
       },
-      errorMessage: '保存设置失败',
+      errorMessage: 'save_settings_failed'.tr,
       showSnackbar: false,
     );
   }
