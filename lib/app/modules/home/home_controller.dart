@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../routes/app_pages.dart';
 import '../../data/services/cycle_service.dart';
 import '../../utils/cycle_predictor.dart';
-import '../../utils/error_handler.dart';
+import '../../core/base_controller.dart';
 
 /// 主页控制器 - 管理首页的状态和业务逻辑
 ///
@@ -19,7 +19,7 @@ import '../../utils/error_handler.dart';
 /// - 异步操作使用适当的错误处理
 /// - 批量更新状态变量，减少UI重建次数
 /// - 智能缓存机制，避免不必要的数据库查询
-class HomeController extends GetxController {
+class HomeController extends BaseController {
   // =================== 依赖注入 ===================
 
   /// 周期服务 - 处理经期相关的业务逻辑
@@ -52,9 +52,7 @@ class HomeController extends GetxController {
   final isFertile = false.obs;
 
   // =================== 加载状态管理 ===================
-
-  /// 主加载状态 - 控制整个页面的加载显示
-  final isLoading = true.obs;
+  // 注意：主加载状态继承自BaseController
 
   /// 概览数据加载状态 - 控制周期概览卡片的加载
   final isOverviewLoading = true.obs;
@@ -104,13 +102,15 @@ class HomeController extends GetxController {
     }
   }
 
-  /// 加载数据
+  /// 优化的数据加载 - 使用异步操作管理器
   Future<void> _loadData() async {
-    isLoading.value = true;
-    await ErrorHandler.handleAsync(() async {
-      await Future.wait([_loadCycleOverview()]);
-    }, errorMessage: 'load_data_failed'.tr);
-    isLoading.value = false;
+    await safeExecute(
+      () async {
+        await Future.wait([_loadCycleOverview()]);
+      },
+      operationName: 'load_home_data',
+      showLoading: true,
+    );
   }
 
   /// 加载周期概览数据
@@ -168,16 +168,19 @@ class HomeController extends GetxController {
     }
   }
 
-  /// 刷新数据
+  /// 优化的数据刷新 - 带防抖机制
   Future<void> refreshData() async {
-    // 清除当前缓存的数据
-    cycleOverview.value = null;
-    isOverviewLoading.value = true;
+    // 使用防抖机制避免频繁刷新
+    debounceExecute(() async {
+      // 清除当前缓存的数据
+      cycleOverview.value = null;
+      isOverviewLoading.value = true;
 
-    // 添加短暂延迟确保数据库操作完成
-    await Future.delayed(const Duration(milliseconds: 100));
+      // 添加短暂延迟确保数据库操作完成
+      await Future.delayed(const Duration(milliseconds: 100));
 
-    await _loadData();
+      await _loadData();
+    });
   }
 
   // =================== 计算属性和业务逻辑方法 ===================
@@ -237,15 +240,20 @@ class HomeController extends GetxController {
     });
   }
 
-  /// 快速开始经期
+  /// 优化的快速开始经期 - 使用节流机制
   Future<void> quickStartPeriod() async {
-    try {
-      await _cycleService.startNewPeriod(DateTime.now());
-      Get.snackbar('success'.tr, 'period_started'.tr);
-      await refreshData();
-    } catch (e) {
-      Get.snackbar('error'.tr, '${'error'.tr}: $e');
-    }
+    // 使用节流机制防止重复点击
+    throttleExecute(() async {
+      final result = await safeExecute(() async {
+        await _cycleService.startNewPeriod(DateTime.now());
+        await refreshData();
+        return true;
+      }, operationName: 'start_period');
+
+      if (result == true) {
+        showSuccess('period_started'.tr);
+      }
+    });
   }
 
   /// 快速结束经期

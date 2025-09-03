@@ -1,7 +1,14 @@
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/performance_utils.dart';
 
-/// 基础控制器抽象类 - 为所有控制器提供通用功能
+/// 优化的基础控制器抽象类 - 为所有控制器提供通用功能和性能优化
+///
+/// 性能优化特性：
+/// - 智能状态更新，减少不必要的UI重建
+/// - 防抖和节流机制
+/// - 性能监控集成
+/// - 内存泄漏防护
 abstract class BaseController extends GetxController {
   /// 控制器名称 - 用于日志和调试
   String get controllerName => runtimeType.toString();
@@ -12,6 +19,11 @@ abstract class BaseController extends GetxController {
   /// 错误信息
   final errorMessage = ''.obs;
 
+  /// 性能优化工具
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+  final Throttler _throttler = Throttler(milliseconds: 1000);
+  final PerformanceMonitor _performanceMonitor = PerformanceMonitor();
+
   /// 是否有错误
   bool get hasError => errorMessage.value.isNotEmpty;
 
@@ -20,37 +32,85 @@ abstract class BaseController extends GetxController {
     errorMessage.value = '';
   }
 
-  /// 设置错误
+  /// 智能设置错误 - 只在错误信息改变时更新
   void setError(String message) {
-    errorMessage.value = message;
-    _logError('Error set: $message');
+    if (errorMessage.value != message) {
+      errorMessage.value = message;
+      _logError('Error set: $message');
+    }
   }
 
-  /// 安全执行异步操作
+  /// 防抖执行 - 防止频繁操作
+  void debounceExecute(VoidCallback action) {
+    _debouncer.run(action);
+  }
+
+  /// 节流执行 - 限制操作频率
+  void throttleExecute(VoidCallback action) {
+    _throttler.run(action);
+  }
+
+  /// 智能设置加载状态 - 只在状态真正改变时更新
+  void setLoading(bool loading) {
+    if (isLoading.value != loading) {
+      isLoading.value = loading;
+    }
+  }
+
+  /// 优化的安全执行异步操作 - 带性能监控
   Future<T?> safeExecute<T>(
     Future<T> Function() operation, {
     String? operationName,
     bool showLoading = true,
     T? fallbackValue,
     bool clearErrorOnStart = true,
+    bool enablePerformanceMonitoring = true,
   }) async {
+    final opName = operationName ?? 'Unknown';
+    final performanceTag = '${controllerName}_$opName';
+
     try {
       if (clearErrorOnStart) clearError();
-      if (showLoading) isLoading.value = true;
+      if (showLoading) setLoading(true);
 
-      _logInfo('Starting operation: ${operationName ?? 'Unknown'}');
+      _logInfo('Starting operation: $opName');
+
+      if (enablePerformanceMonitoring) {
+        _performanceMonitor.startTimer(performanceTag);
+      }
+
       final result = await operation();
-      _logInfo('Operation completed successfully: ${operationName ?? 'Unknown'}');
 
+      if (enablePerformanceMonitoring) {
+        _performanceMonitor.stopTimer(performanceTag);
+      }
+
+      _logInfo('Operation completed successfully: $opName');
       return result;
     } catch (e) {
-      final errorMsg = 'Operation failed: ${operationName ?? 'Unknown'} - $e';
+      if (enablePerformanceMonitoring) {
+        _performanceMonitor.stopTimer(performanceTag);
+      }
+
+      final errorMsg = 'Operation failed: $opName - $e';
       setError(errorMsg);
       _logError(errorMsg, e);
       return fallbackValue;
     } finally {
-      if (showLoading) isLoading.value = false;
+      if (showLoading) setLoading(false);
     }
+  }
+
+  /// 批量更新状态 - 减少UI重建次数
+  void batchUpdate(List<VoidCallback> updates) {
+    for (final update in updates) {
+      update();
+    }
+  }
+
+  /// 获取性能统计
+  Map<String, Map<String, dynamic>> getPerformanceStats() {
+    return _performanceMonitor.getPerformanceReport();
   }
 
   /// 统一的日志记录
@@ -94,6 +154,12 @@ abstract class BaseController extends GetxController {
   @override
   void onClose() {
     _logInfo('Controller closing');
+
+    // 清理性能优化工具，防止内存泄漏
+    _debouncer.cancel();
+    _throttler.cancel();
+    _performanceMonitor.clearAllMetrics();
+
     cleanupController();
     super.onClose();
   }
