@@ -237,7 +237,7 @@ class AppTranslations extends Translations {
       'regularity_moderate': '周期有一定波动，建议记录更多影响因素如压力、运动等',
       'regularity_poor': '周期不够规律，建议咨询医生并记录详细的生活习惯',
       'regularity_very_poor': '周期很不规律，强烈建议尽快咨询专业医生',
-      'period_day_description': '经期第@day天',
+      'period_day_description_alt': '经期第@day天',
       'days_later': '@days天后',
       'none': '无',
       'insufficient_data': '数据不足',
@@ -430,11 +430,9 @@ class AppTranslations extends Translations {
       'fertile_days': 'Fertile',
       'safe_days': 'Safe',
 
-      // 记录 - 英文翻译
-      'record_title_en': 'Record',
-      'record_period_en': 'Record Period',
-      'record_symptoms_en': 'Record Symptoms',
-      'record_mood_en': 'Record Mood',
+      // 记录页面
+      'record_title': 'Record',
+      'record_period': 'Record Period',
       'record_notes': 'Add Notes',
       'flow_level': 'Flow Level',
       'flow_light': 'Light',

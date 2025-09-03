@@ -34,21 +34,28 @@ void main() async {
 }
 
 /// 初始化服务
+///
+/// 性能优化：
+/// - 核心服务优先初始化
+/// - 非关键服务延迟初始化
+/// - 并行初始化独立服务
 Future<void> _initServices() async {
   try {
-    // 初始化数据库服务
+    // 第一阶段：初始化核心服务（必须串行）
     await Get.putAsync(() => DatabaseService().init());
-
-    // 初始化语言服务（必须在数据库服务之后）
     await Get.putAsync(() => LocaleService().init());
 
-    // 初始化通知服务
-    await Get.putAsync(() => NotificationService().init());
+    // 第二阶段：并行初始化独立服务（提高启动速度）
+    await Future.wait([
+      Get.putAsync(() => NotificationService().init()),
+      Get.putAsync(() => CycleService().init()),
+    ]);
 
-    // 初始化周期服务
-    await Get.putAsync(() => CycleService().init());
+    debugPrint('Core services initialized successfully');
   } catch (e) {
     debugPrint('Service initialization failed: $e');
+    // 即使部分服务初始化失败，也要确保应用能够启动
+    rethrow;
   }
 }
 

@@ -212,7 +212,7 @@ class CalendarPage extends GetView<CalendarController> {
       // 预测数据显示为虚线边框
       final events = controller.getEventsForDay(day);
       if (events.contains('predicted_period') || events.contains('predicted_ovulation')) {
-        backgroundColor = backgroundColor.withValues(alpha: 0.3) ?? Colors.transparent;
+        backgroundColor = backgroundColor.withValues(alpha: 0.3);
         borderColor = controller.getDayColor(day);
         textColor = borderColor;
       }

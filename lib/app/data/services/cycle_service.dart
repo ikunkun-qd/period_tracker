@@ -35,6 +35,32 @@ class CycleService extends GetxService {
   /// 缓存过期时间（分钟）- 平衡性能和数据新鲜度
   static const int _cacheExpiryMinutes = 5;
 
+  /// 最大缓存记录数 - 防止内存过度使用
+  static const int _maxCacheSize = 100;
+
+  /// 统计数据缓存 - 避免重复计算
+  final Map<String, dynamic> _statisticsCache = {};
+
+  /// 统计缓存过期时间
+  DateTime? _statisticsCacheUpdate;
+
+  /// 获取统计缓存
+  Map<String, dynamic> get statisticsCache => _statisticsCache;
+
+  /// 获取缓存更新时间
+  DateTime? get statisticsCacheUpdateTime => _statisticsCacheUpdate;
+
+  /// 清除统计缓存
+  void clearStatisticsCache() {
+    _statisticsCache.clear();
+    _statisticsCacheUpdate = null;
+  }
+
+  /// 更新统计缓存时间
+  void _updateCacheTimestamp() {
+    _statisticsCacheUpdate = DateTime.now();
+  }
+
   /// 初始化服务
   ///
   /// 在应用启动时调用，进行必要的初始化工作
@@ -176,12 +202,17 @@ class CycleService extends GetxService {
     debugPrint('Fetching period records from database');
     final periods = await _databaseService.getAllPeriodRecords();
 
+    // 限制缓存大小，防止内存过度使用
+    final limitedPeriods = periods.length > _maxCacheSize
+        ? periods.take(_maxCacheSize).toList()
+        : periods;
+
     // 更新缓存
-    _cachedPeriods = periods;
+    _cachedPeriods = limitedPeriods;
     _lastCacheUpdate = DateTime.now();
 
-    debugPrint('Period record cache updated, total ${periods.length} records');
-    return periods;
+    debugPrint('Period record cache updated, total ${limitedPeriods.length} records');
+    return periods; // 返回完整数据，但只缓存限制数量
   }
 
   // =================== 每日记录管理 ===================
@@ -244,7 +275,9 @@ class CycleService extends GetxService {
   /// 获取平均周期长度
   Future<double> getAverageCycleLength() async {
     final periods = await getAllPeriods();
-    return DateCalculator.calculateAverageCycleLength(periods);
+    final result = DateCalculator.calculateAverageCycleLength(periods);
+    _updateCacheTimestamp();
+    return result;
   }
 
   /// 获取平均经期长度

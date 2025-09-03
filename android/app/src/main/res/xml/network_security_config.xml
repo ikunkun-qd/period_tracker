@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 生产环境安全配置 -->
+    <domain-config cleartextTrafficPermitted="false">
+        <!-- 只允许HTTPS连接 -->
+        <domain includeSubdomains="true">api.periodtracker.com</domain>
+        <domain includeSubdomains="true">backup.periodtracker.com</domain>
+        
+        <!-- 证书固定 -->
+        <pin-set expiration="2025-12-31">
+            <!-- 替换为实际的证书指纹 -->
+            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+    </domain-config>
+    
+    <!-- 调试环境配置 -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- 允许调试证书 -->
+            <certificates src="user"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </debug-overrides>
+    
+    <!-- 基础配置 -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

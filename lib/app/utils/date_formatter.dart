@@ -244,6 +244,71 @@ class DateFormatter {
     return '${ml}ml';
   }
 
+  /// 格式化周期天数
+  static String formatCycleDay(int day) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? '周期第$day天' : 'Cycle Day $day';
+  }
+
+  /// 格式化剩余天数
+  static String formatDaysUntil(int days) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? '还有$days天' : '$days days left';
+  }
+
+  /// 格式化经期天数
+  static String formatPeriodDay(int day) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    return locale == 'zh' ? '经期第$day天' : 'Period Day $day';
+  }
+
+  /// 格式化日期范围
+  static String formatDateRange(DateTime start, DateTime end) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    if (locale == 'zh') {
+      final startStr = DateFormat('M月d日', 'zh_CN').format(start);
+      final endStr = DateFormat('M月d日', 'zh_CN').format(end);
+      return '$startStr - $endStr';
+    } else {
+      final startStr = DateFormat('MM/dd', 'en_US').format(start);
+      final endStr = DateFormat('MM/dd', 'en_US').format(end);
+      return '$startStr - $endStr';
+    }
+  }
+
+  /// 获取本地化月份名称
+  static String getLocalizedMonthName(int month) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    final monthNames = locale == 'zh'
+        ? ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+        : [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ];
+
+    return monthNames[month - 1];
+  }
+
+  /// 获取本地化星期名称
+  static String getLocalizedWeekdayName(int weekday) {
+    final locale = Get.locale?.languageCode ?? 'zh';
+    final weekdayNames = locale == 'zh'
+        ? ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    return weekdayNames[weekday - 1];
+  }
+
   /// 获取本地化的星期几简称
   static String getShortWeekday(int weekday) {
     final weekdays = {1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六', 7: '周日'};

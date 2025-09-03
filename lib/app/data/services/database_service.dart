@@ -71,33 +71,37 @@ class DatabaseService extends GetxService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL UNIQUE,
         is_period INTEGER DEFAULT 0,
-        flow_level INTEGER,
+        flow_level INTEGER CHECK (flow_level >= 0 AND flow_level <= 5),
         flow_color TEXT,
         flow_texture TEXT,
-        pain_level INTEGER,
+        pain_level INTEGER CHECK (pain_level >= 0 AND pain_level <= 10),
         pain_locations TEXT,
-        mood INTEGER,
+        mood INTEGER CHECK (mood >= 0 AND mood <= 5),
         symptoms TEXT,
         notes TEXT,
         cervical_mucus_type TEXT,
-        cervical_mucus_amount INTEGER,
-        basal_body_temperature REAL,
-        weight REAL,
-        blood_pressure_systolic INTEGER,
-        blood_pressure_diastolic INTEGER,
-        heart_rate INTEGER,
-        water_intake INTEGER,
-        caffeine_intake INTEGER,
+        cervical_mucus_amount INTEGER CHECK (cervical_mucus_amount >= 0 AND cervical_mucus_amount <= 4),
+        basal_body_temperature REAL CHECK (basal_body_temperature >= 35.0 AND basal_body_temperature <= 42.0),
+        weight REAL CHECK (weight > 0 AND weight < 500),
+        blood_pressure_systolic INTEGER CHECK (blood_pressure_systolic >= 50 AND blood_pressure_systolic <= 300),
+        blood_pressure_diastolic INTEGER CHECK (blood_pressure_diastolic >= 30 AND blood_pressure_diastolic <= 200),
+        heart_rate INTEGER CHECK (heart_rate >= 30 AND heart_rate <= 250),
+        water_intake INTEGER CHECK (water_intake >= 0 AND water_intake <= 10000),
+        caffeine_intake INTEGER CHECK (caffeine_intake >= 0 AND caffeine_intake <= 2000),
         exercise_type TEXT,
-        exercise_duration INTEGER,
-        exercise_intensity INTEGER,
-        sleep_hours REAL,
-        sleep_quality INTEGER,
-        stress_level INTEGER,
+        exercise_duration INTEGER CHECK (exercise_duration >= 0 AND exercise_duration <= 1440),
+        exercise_intensity INTEGER CHECK (exercise_intensity >= 0 AND exercise_intensity <= 10),
+        sleep_hours REAL CHECK (sleep_hours >= 0 AND sleep_hours <= 24),
+        sleep_quality INTEGER CHECK (sleep_quality >= 0 AND sleep_quality <= 10),
+        stress_level INTEGER CHECK (stress_level >= 0 AND stress_level <= 10),
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
     ''');
+
+    // 为 daily_records 表创建索引
+    await db.execute('CREATE INDEX idx_daily_records_date ON daily_records(date)');
+    await db.execute('CREATE INDEX idx_daily_records_is_period ON daily_records(is_period)');
 
     // 症状记录表
     await db.execute('''
@@ -695,5 +699,78 @@ class DatabaseService extends GetxService {
       where: 'created_at < ?',
       whereArgs: [oneMonthAgo.toIso8601String()],
     );
+  }
+
+  /// 删除过期的每日记录
+  Future<void> deleteOldDailyRecords(DateTime cutoffDate) async {
+    final cutoffDateStr = cutoffDate.toIso8601String().split('T')[0];
+    await database.delete('daily_records', where: 'date < ?', whereArgs: [cutoffDateStr]);
+  }
+
+  /// 删除过期的经期记录
+  Future<void> deleteOldPeriodRecords(DateTime cutoffDate) async {
+    final cutoffDateStr = cutoffDate.toIso8601String().split('T')[0];
+    await database.delete('period_records', where: 'start_date < ?', whereArgs: [cutoffDateStr]);
+  }
+
+  /// 获取记录总数
+  Future<int> getTotalRecordsCount() async {
+    final dailyCount =
+        Sqflite.firstIntValue(await database.rawQuery('SELECT COUNT(*) FROM daily_records')) ?? 0;
+
+    final periodCount =
+        Sqflite.firstIntValue(await database.rawQuery('SELECT COUNT(*) FROM period_records')) ?? 0;
+
+    return dailyCount + periodCount;
+  }
+
+  /// 获取最早记录日期
+  Future<DateTime?> getOldestRecordDate() async {
+    final result = await database.rawQuery('''
+      SELECT MIN(date) as oldest_date FROM (
+        SELECT date FROM daily_records
+        UNION ALL
+        SELECT start_date as date FROM period_records
+      )
+    ''');
+
+    if (result.isNotEmpty && result.first['oldest_date'] != null) {
+      return DateTime.parse(result.first['oldest_date'] as String);
+    }
+    return null;
+  }
+
+  /// 获取最新记录日期
+  Future<DateTime?> getNewestRecordDate() async {
+    final result = await database.rawQuery('''
+      SELECT MAX(date) as newest_date FROM (
+        SELECT date FROM daily_records
+        UNION ALL
+        SELECT start_date as date FROM period_records
+      )
+    ''');
+
+    if (result.isNotEmpty && result.first['newest_date'] != null) {
+      return DateTime.parse(result.first['newest_date'] as String);
+    }
+    return null;
+  }
+
+  /// 删除所有用户数据
+  Future<void> deleteAllUserData() async {
+    final batch = database.batch();
+
+    // 删除所有表的数据
+    batch.delete('daily_records');
+    batch.delete('period_records');
+    batch.delete('symptoms');
+    batch.delete('mood_records');
+    batch.delete('weight_records');
+    batch.delete('temperature_records');
+    batch.delete('exercise_records');
+    batch.delete('sleep_records');
+    batch.delete('user_settings');
+
+    await batch.commit();
   }
 }
