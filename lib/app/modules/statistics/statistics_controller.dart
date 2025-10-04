@@ -4,6 +4,7 @@ import '../../data/services/cycle_service.dart';
 import '../../data/models/models.dart';
 import '../../utils/cycle_predictor.dart';
 import '../../utils/date_calculator.dart';
+import '../home/home_controller.dart';
 
 /// 统计页面控制器 - 管理周期统计数据和图表展示
 ///
@@ -52,6 +53,29 @@ class StatisticsController extends GetxController {
   void onInit() {
     super.onInit();
     loadStatisticsData();
+  }
+
+  // {{ AURA: Add - 页面就绪时同步底部导航索引 }}
+  @override
+  void onReady() {
+    super.onReady();
+    _syncNavigationIndex();
+  }
+
+  /// 同步底部导航索引
+  ///
+  /// {{ AURA: Fix - 添加 isRegistered 检查，避免 HomeController 未注册时的错误 }}
+  void _syncNavigationIndex() {
+    try {
+      if (Get.isRegistered<HomeController>()) {
+        final homeController = Get.find<HomeController>();
+        homeController.currentIndex.value = 3; // 统计页面索引为3
+      } else {
+        debugPrint('HomeController not registered yet, skipping navigation index sync');
+      }
+    } catch (e) {
+      debugPrint('Failed to sync navigation index: $e');
+    }
   }
 
   /// 加载统计数据

@@ -4,6 +4,7 @@ import '../../data/services/database_service.dart';
 import '../../data/services/cycle_service.dart';
 import '../../data/services/locale_service.dart';
 import '../../utils/error_handler.dart';
+import '../home/home_controller.dart';
 
 class SettingsController extends GetxController {
   final DatabaseService _databaseService = Get.find<DatabaseService>();
@@ -37,6 +38,29 @@ class SettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadSettings();
+  }
+
+  // {{ AURA: Add - 页面就绪时同步底部导航索引 }}
+  @override
+  void onReady() {
+    super.onReady();
+    _syncNavigationIndex();
+  }
+
+  /// 同步底部导航索引
+  ///
+  /// {{ AURA: Fix - 添加 isRegistered 检查，避免 HomeController 未注册时的错误 }}
+  void _syncNavigationIndex() {
+    try {
+      if (Get.isRegistered<HomeController>()) {
+        final homeController = Get.find<HomeController>();
+        homeController.currentIndex.value = 4; // 设置页面索引为4
+      } else {
+        debugPrint('HomeController not registered yet, skipping navigation index sync');
+      }
+    } catch (e) {
+      debugPrint('Failed to sync navigation index: $e');
+    }
   }
 
   /// 切换深色模式

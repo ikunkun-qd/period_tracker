@@ -81,24 +81,41 @@ class HomeController extends BaseController {
   @override
   void onReady() {
     super.onReady();
+    // {{ AURA: Add - 页面就绪后更新索引，确保与路由同步 }}
+    _updateCurrentIndex();
     // 在页面就绪后刷新数据
     refreshData();
   }
 
   /// 根据当前路由更新索引
+  ///
+  /// {{ AURA: Modify - 优化路由索引同步逻辑 }}
   void _updateCurrentIndex() {
     final currentRoute = Get.currentRoute;
     final index = pages.indexOf(currentRoute);
-    if (index != -1) {
+    if (index != -1 && currentIndex.value != index) {
       currentIndex.value = index;
+      debugPrint('Updated navigation index to $index for route: $currentRoute');
+    }
+  }
+
+  /// 公开方法供其他控制器调用以同步索引
+  void syncNavigationIndex(int index) {
+    if (currentIndex.value != index) {
+      currentIndex.value = index;
+      debugPrint('Synced navigation index to $index');
     }
   }
 
   /// 切换底部导航
+  ///
+  /// {{ AURA: Modify - 使用offNamed替换路由，避免路由堆叠 }}
   void changeTabIndex(int index) {
     if (currentIndex.value != index) {
       currentIndex.value = index;
-      Get.toNamed(pages[index]);
+      // {{ AURA: Fix - 使用offNamed替换当前路由，避免路由堆叠导致返回按钮问题 }}
+      // 这样点击返回按钮时不会返回到之前的导航页面
+      Get.offNamed(pages[index]);
     }
   }
 

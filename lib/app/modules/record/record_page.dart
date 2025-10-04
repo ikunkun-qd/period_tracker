@@ -127,6 +127,7 @@ class RecordPage extends GetView<RecordController> {
     );
   }
 
+  /// {{ AURA: Modify - 添加RepaintBoundary隔离 }}
   Widget _buildFlowLevelSection() {
     final flowLevels = [
       {'name': 'flow_light'.tr, 'desc': 'flow_light_desc'.tr, 'icon': '💧'},
@@ -135,90 +136,92 @@ class RecordPage extends GetView<RecordController> {
       {'name': 'flow_very_heavy'.tr, 'desc': 'flow_very_heavy_desc'.tr, 'icon': '💧💧💧💧'},
     ];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'flow_level'.tr,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Obx(
-                  () => controller.flowLevel.value > 0
-                      ? Text(
-                          flowLevels[controller.flowLevel.value - 1]['name']!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            Obx(
-              () => Column(
-                children: List.generate(4, (index) {
-                  final isSelected = controller.flowLevel.value == index + 1;
-                  final level = flowLevels[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: GestureDetector(
-                      onTap: () => controller.updateFlowLevel(index + 1),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppTheme.primaryColor : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(level['icon']!, style: const TextStyle(fontSize: 20)),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    level['name']!,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    level['desc']!,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.white70 : Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
+    return RepaintBoundary(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'flow_level'.tr,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Obx(
+                    () => controller.flowLevel.value > 0
+                        ? Text(
+                            flowLevels[controller.flowLevel.value - 1]['name']!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
                             ),
-                            if (isSelected)
-                              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                          ],
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Obx(
+                () => Column(
+                  children: List.generate(4, (index) {
+                    final isSelected = controller.flowLevel.value == index + 1;
+                    final level = flowLevels[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: GestureDetector(
+                        onTap: () => controller.updateFlowLevel(index + 1),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppTheme.primaryColor : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(level['icon']!, style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      level['name']!,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      level['desc']!,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white70 : Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

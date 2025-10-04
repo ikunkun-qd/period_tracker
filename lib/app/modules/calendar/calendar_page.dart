@@ -70,21 +70,28 @@ class CalendarPage extends GetView<CalendarController> {
   }
 
   /// 构建日历组件
+  ///
+  /// {{ AURA: Modify - 优化日历样式，采用现代化设计 }}
   Widget _buildCalendar() {
     return Obx(
       () => Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, AppTheme.primaryColor.withValues(alpha: 0.02)],
+          ),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              spreadRadius: 1,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              spreadRadius: 0,
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
+        padding: const EdgeInsets.all(12),
         child: TableCalendar<String>(
           firstDay: DateTime.utc(2020, 1, 1),
           lastDay: DateTime.utc(2030, 12, 31),
@@ -96,67 +103,94 @@ class CalendarPage extends GetView<CalendarController> {
           eventLoader: controller.getEventsForDay,
           startingDayOfWeek: StartingDayOfWeek.monday,
           locale: Get.locale?.languageCode ?? 'zh',
+          daysOfWeekHeight: 40,
+          rowHeight: 56,
           calendarStyle: CalendarStyle(
             outsideDaysVisible: false,
             weekendTextStyle: TextStyle(
-              color: Colors.red.shade600,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              color: AppTheme.primaryColor.withValues(alpha: 0.8),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
             holidayTextStyle: TextStyle(
-              color: Colors.red.shade600,
-              fontSize: 14,
+              color: AppTheme.primaryColor.withValues(alpha: 0.8),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+            markersMaxCount: 0,
+            selectedDecoration: const BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            todayDecoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+            defaultTextStyle: const TextStyle(
+              fontSize: 15,
               fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
-            markersMaxCount: 3,
-            markerSize: 8,
-            markerMargin: const EdgeInsets.symmetric(horizontal: 1.5),
-            markerDecoration: BoxDecoration(color: Colors.orange.shade400, shape: BoxShape.circle),
-            selectedDecoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            todayDecoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.7),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.primaryColor, width: 2),
-            ),
-            defaultTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
           headerStyle: HeaderStyle(
             formatButtonVisible: true,
             titleCentered: true,
             formatButtonShowsNext: false,
+            headerPadding: const EdgeInsets.symmetric(vertical: 12),
             titleTextStyle: const TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
+              letterSpacing: 0.5,
             ),
             formatButtonTextStyle: TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w600,
             ),
             formatButtonDecoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.primaryColor.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 1.5),
             ),
-            leftChevronIcon: Icon(Icons.chevron_left, color: AppTheme.primaryColor, size: 24),
-            rightChevronIcon: Icon(Icons.chevron_right, color: AppTheme.primaryColor, size: 24),
+            formatButtonPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leftChevronIcon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.chevron_left, color: AppTheme.primaryColor, size: 20),
+            ),
+            rightChevronIcon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.chevron_right, color: AppTheme.primaryColor, size: 20),
+            ),
+          ),
+          daysOfWeekStyle: DaysOfWeekStyle(
+            weekdayStyle: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+              letterSpacing: 0.5,
+            ),
+            weekendStyle: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryColor.withValues(alpha: 0.7),
+              letterSpacing: 0.5,
+            ),
           ),
           onDaySelected: controller.onDaySelected,
           onPageChanged: controller.onPageChanged,
           onFormatChanged: controller.onFormatChanged,
           calendarBuilders: CalendarBuilders(
-            // 自定义日期构建器
             defaultBuilder: (context, day, focusedDay) {
               return _buildDayCell(day);
             },
@@ -167,8 +201,9 @@ class CalendarPage extends GetView<CalendarController> {
               return _buildDayCell(day, isToday: true);
             },
             markerBuilder: (context, day, events) {
+              if (events.isEmpty) return null;
               return Positioned(
-                bottom: 4,
+                bottom: 6,
                 child: Row(mainAxisSize: MainAxisSize.min, children: controller.getDayMarkers(day)),
               );
             },
@@ -179,59 +214,103 @@ class CalendarPage extends GetView<CalendarController> {
   }
 
   /// 构建日期单元格
+  ///
+  /// {{ AURA: Modify - 优化日期单元格样式，采用渐变和阴影效果 }}
   Widget _buildDayCell(DateTime day, {bool isSelected = false, bool isToday = false}) {
+    final events = controller.getEventsForDay(day);
+    final baseColor = controller.getDayColor(day);
+    final isPredicted =
+        events.contains('predicted_period') || events.contains('predicted_ovulation');
+
+    // 判断是否有周期状态
+    final hasCycleStatus = baseColor != Colors.transparent;
+
     Color? backgroundColor;
     Color? textColor;
-    Color? borderColor;
+    Gradient? gradient;
+    List<BoxShadow>? shadows;
+    Border? border;
 
     if (isSelected) {
-      backgroundColor = AppTheme.primaryColor;
+      // 选中状态：使用渐变和阴影
+      gradient = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
+      );
       textColor = Colors.white;
+      shadows = [
+        BoxShadow(
+          color: AppTheme.primaryColor.withValues(alpha: 0.4),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        ),
+      ];
     } else if (isToday) {
-      backgroundColor = AppTheme.primaryColor.withValues(alpha: 0.7);
-      textColor = Colors.white;
-    } else {
-      backgroundColor = controller.getDayColor(day);
-      if (backgroundColor == const Color(0xFFE91E63)) {
-        // 经期颜色
-        textColor = Colors.white;
-      } else if (backgroundColor == const Color(0xFF4CAF50)) {
-        // 排卵期颜色
-        textColor = Colors.white;
-      } else if (backgroundColor == const Color(0xFF81C784)) {
-        // 易孕期颜色
-        textColor = Colors.white;
-      } else if (backgroundColor == const Color(0xFF2196F3)) {
-        // 安全期颜色
-        textColor = Colors.white;
+      // 今天：使用边框高亮
+      backgroundColor = hasCycleStatus ? baseColor : Colors.white;
+      textColor = hasCycleStatus ? Colors.white : AppTheme.primaryColor;
+      border = Border.all(color: AppTheme.primaryColor, width: 2.5);
+      shadows = [
+        BoxShadow(
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+      ];
+    } else if (hasCycleStatus) {
+      // 有周期状态的日期
+      if (isPredicted) {
+        // 预测数据：使用虚线边框和半透明背景
+        backgroundColor = baseColor.withValues(alpha: 0.15);
+        textColor = baseColor;
+        border = Border.all(
+          color: baseColor.withValues(alpha: 0.6),
+          width: 2,
+          strokeAlign: BorderSide.strokeAlignInside,
+        );
       } else {
-        backgroundColor = Colors.transparent;
-        textColor = Colors.black87;
+        // 实际数据：使用渐变背景
+        gradient = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [baseColor, baseColor.withValues(alpha: 0.85)],
+        );
+        textColor = Colors.white;
+        shadows = [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ];
       }
-
-      // 预测数据显示为虚线边框
-      final events = controller.getEventsForDay(day);
-      if (events.contains('predicted_period') || events.contains('predicted_ovulation')) {
-        backgroundColor = backgroundColor.withValues(alpha: 0.3);
-        borderColor = controller.getDayColor(day);
-        textColor = borderColor;
-      }
+    } else {
+      // 普通日期
+      backgroundColor = Colors.transparent;
+      textColor = Colors.black87;
     }
 
-    return Container(
-      margin: const EdgeInsets.all(1),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
-        border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
-      ),
-      child: Center(
-        child: Text(
-          '${day.day}',
-          style: TextStyle(
-            color: textColor,
-            fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
+    return RepaintBoundary(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: gradient == null ? backgroundColor : null,
+          gradient: gradient,
+          shape: BoxShape.circle,
+          border: border,
+          boxShadow: shadows,
+        ),
+        child: Center(
+          child: Text(
+            '${day.day}',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.w500,
+              fontSize: 15,
+              letterSpacing: 0.3,
+            ),
           ),
         ),
       ),
@@ -239,110 +318,211 @@ class CalendarPage extends GetView<CalendarController> {
   }
 
   /// 构建图例
+  ///
+  /// {{ AURA: Modify - 优化图例样式，采用卡片式设计 }}
   Widget _buildLegend() {
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              spreadRadius: 1,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Colors.grey.shade50],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('legend'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              children: [
-                _buildLegendItem('period_active'.tr, AppTheme.periodColor),
-                _buildLegendItem('ovulation_period'.tr, AppTheme.ovulationColor),
-                _buildLegendItem('fertile_window'.tr, AppTheme.fertileColor),
-                _buildLegendItem('safe_period'.tr, AppTheme.safeColor),
-                _buildLegendItem('predicted'.tr, Colors.grey, isDashed: true),
-                _buildLegendItem('has_record'.tr, Colors.orange, showDot: true),
-              ],
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.info_outline, size: 18, color: AppTheme.primaryColor),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'legend'.tr,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _buildLegendItem('period_active'.tr, AppTheme.periodColor),
+              _buildLegendItem('ovulation_period'.tr, AppTheme.ovulationColor),
+              _buildLegendItem('fertile_window'.tr, AppTheme.fertileColor),
+              _buildLegendItem('safe_period'.tr, AppTheme.safeColor),
+              _buildLegendItem('predicted'.tr, Colors.grey.shade600, isDashed: true),
+              _buildLegendItem('has_record'.tr, Colors.orange, showDot: true),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   /// 构建图例项
+  ///
+  /// {{ AURA: Modify - 优化图例项样式，增加视觉层次 }}
   Widget _buildLegendItem(
     String label,
     Color color, {
     bool isDashed = false,
     bool showDot = false,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: isDashed ? color.withValues(alpha: 0.3) : color,
-            shape: BoxShape.circle,
-            border: isDashed ? Border.all(color: color, width: 2) : null,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              gradient: isDashed
+                  ? null
+                  : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [color, color.withValues(alpha: 0.8)],
+                    ),
+              color: isDashed ? color.withValues(alpha: 0.15) : null,
+              shape: BoxShape.circle,
+              border: isDashed ? Border.all(color: color.withValues(alpha: 0.6), width: 2) : null,
+              boxShadow: isDashed
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: showDot
+                ? Center(
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    ),
+                  )
+                : null,
           ),
-          child: showDot
-              ? Center(
-                  child: Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  ),
-                )
-              : null,
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   /// 构建选中日期信息
+  ///
+  /// {{ AURA: Modify - 优化选中日期信息卡片样式 }}
   Widget _buildSelectedDayInfo() {
     return Obx(() {
-      return SizedBox(
-        width: double.infinity,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+      final day = controller.selectedDay.value;
+      final events = controller.getEventsForDay(day);
+
+      // 根据周期状态选择主题色
+      Color themeColor = AppTheme.primaryColor;
+      if (events.contains('period') || events.contains('predicted_period')) {
+        themeColor = AppTheme.periodColor;
+      } else if (events.contains('ovulation') || events.contains('predicted_ovulation')) {
+        themeColor = AppTheme.ovulationColor;
+      } else if (events.contains('fertile')) {
+        themeColor = AppTheme.fertileColor;
+      } else {
+        themeColor = AppTheme.safeColor;
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, themeColor.withValues(alpha: 0.03)],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'selected_date_info'.tr,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              _buildSelectedDayInfoChips(),
-            ],
-          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: themeColor.withValues(alpha: 0.15), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: themeColor.withValues(alpha: 0.1),
+              spreadRadius: 0,
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        themeColor.withValues(alpha: 0.15),
+                        themeColor.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.event_note, size: 20, color: themeColor),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'selected_date_info'.tr,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: themeColor,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildSelectedDayInfoChips(),
+          ],
         ),
       );
     });
@@ -430,31 +610,44 @@ class CalendarPage extends GetView<CalendarController> {
   }
 
   /// 构建信息标签
+  ///
+  /// {{ AURA: Modify - 优化信息标签样式，增加渐变和阴影 }}
   Widget _buildInfoChip(String label, Color color, IconData icon) {
     return Container(
-      height: 28, // 固定高度确保对齐
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.06)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
+            child: Icon(icon, size: 14, color: color),
+          ),
+          const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
-              color: color.withValues(alpha: 0.8),
-              fontSize: 12,
+              color: color.withValues(alpha: 0.9),
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              height: 1.0, // 固定行高
+              letterSpacing: 0.2,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -528,8 +721,18 @@ class CalendarPage extends GetView<CalendarController> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // 通过HomeController导航以正确更新底部导航索引
-                      Get.find<HomeController>().changeTabIndex(2); // 2是记录页面的索引
+                      // {{ AURA: Fix - 添加安全检查，确保 HomeController 已注册 }}
+                      try {
+                        if (Get.isRegistered<HomeController>()) {
+                          Get.find<HomeController>().changeTabIndex(2); // 2是记录页面的索引
+                        } else {
+                          // 如果 HomeController 未注册，直接导航
+                          Get.toNamed('/record');
+                        }
+                      } catch (e) {
+                        debugPrint('Navigation error: $e');
+                        Get.toNamed('/record');
+                      }
                     },
                     icon: const Icon(Icons.edit, size: 18),
                     label: Text('record_data'.tr),
@@ -544,8 +747,18 @@ class CalendarPage extends GetView<CalendarController> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // 通过HomeController导航以正确更新底部导航索引
-                      Get.find<HomeController>().changeTabIndex(3); // 3是统计页面的索引
+                      // {{ AURA: Fix - 添加安全检查，确保 HomeController 已注册 }}
+                      try {
+                        if (Get.isRegistered<HomeController>()) {
+                          Get.find<HomeController>().changeTabIndex(3); // 3是统计页面的索引
+                        } else {
+                          // 如果 HomeController 未注册，直接导航
+                          Get.toNamed('/statistics');
+                        }
+                      } catch (e) {
+                        debugPrint('Navigation error: $e');
+                        Get.toNamed('/statistics');
+                      }
                     },
                     icon: const Icon(Icons.bar_chart, size: 18),
                     label: Text('view_statistics'.tr),

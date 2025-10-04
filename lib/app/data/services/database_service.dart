@@ -84,6 +84,16 @@ class DatabaseService extends GetxService {
       )
     ''');
 
+    // {{ AURA: Add - 为 period_records 表创建索引，优化日期范围查询性能 }}
+    await db.execute('CREATE INDEX idx_period_records_start_date ON period_records(start_date)');
+    await db.execute('CREATE INDEX idx_period_records_end_date ON period_records(end_date)');
+    await db.execute(
+      'CREATE INDEX idx_period_records_is_predicted ON period_records(is_predicted)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_period_records_date_range ON period_records(start_date, end_date)',
+    ); // 复合索引用于日期范围查询
+
     // 每日记录表
     await db.execute('''
       CREATE TABLE daily_records (
@@ -140,6 +150,13 @@ class DatabaseService extends GetxService {
         updated_at TEXT NOT NULL
       )
     ''');
+
+    // {{ AURA: Add - 为 symptom_records 表创建索引，优化症状查询性能 }}
+    await db.execute('CREATE INDEX idx_symptom_records_date ON symptom_records(date)');
+    await db.execute('CREATE INDEX idx_symptom_records_type ON symptom_records(symptom_type)');
+    await db.execute(
+      'CREATE INDEX idx_symptom_records_date_type ON symptom_records(date, symptom_type)',
+    ); // 复合索引
 
     // PMS症状记录表
     await db.execute('''

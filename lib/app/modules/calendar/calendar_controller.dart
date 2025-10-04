@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../utils/cycle_predictor.dart';
 import '../../utils/date_calculator.dart';
 import '../../utils/date_formatter.dart';
+import '../home/home_controller.dart';
 
 /// 日历页面控制器 - 管理日历视图和相关数据
 ///
@@ -46,6 +47,11 @@ class CalendarController extends GetxController {
   final dailyRecords = <DailyRecord>[].obs;
   final predictions = Rxn<Map<String, PredictionResult>>();
 
+  // {{ AURA: Add - 添加日期状态缓存，避免重复计算 }}
+  /// 日期状态缓存 - 缓存每个日期的事件和颜色，避免重复计算
+  final Map<String, List<String>> _dayEventsCache = {};
+  final Map<String, Color> _dayColorCache = {};
+
   // 当前月份的数据范围
   DateTime get firstDayOfMonth => DateCalculator.getFirstDayOfMonth(focusedDay.value);
   DateTime get lastDayOfMonth => DateCalculator.getLastDayOfMonth(focusedDay.value);
@@ -59,6 +65,29 @@ class CalendarController extends GetxController {
   void onInit() {
     super.onInit();
     loadCalendarData();
+  }
+
+  // {{ AURA: Add - 页面就绪时同步底部导航索引 }}
+  @override
+  void onReady() {
+    super.onReady();
+    _syncNavigationIndex();
+  }
+
+  /// 同步底部导航索引
+  ///
+  /// {{ AURA: Fix - 添加 isRegistered 检查，避免 HomeController 未注册时的错误 }}
+  void _syncNavigationIndex() {
+    try {
+      if (Get.isRegistered<HomeController>()) {
+        final homeController = Get.find<HomeController>();
+        homeController.currentIndex.value = 1; // 日历页面索引为1
+      } else {
+        debugPrint('HomeController not registered yet, skipping navigation index sync');
+      }
+    } catch (e) {
+      debugPrint('Failed to sync navigation index: $e');
+    }
   }
 
   /// 加载日历数据
@@ -81,6 +110,9 @@ class CalendarController extends GetxController {
       periodRecords.value = results[0] as List<PeriodRecord>;
       dailyRecords.value = results[1] as List<DailyRecord>;
 
+      // {{ AURA: Add - 清除缓存，确保数据更新后重新计算 }}
+      _clearCache();
+
       // 异步加载预测数据，不阻塞UI
       _loadPredictionDataAsync();
     } catch (e) {
@@ -88,6 +120,13 @@ class CalendarController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // {{ AURA: Add - 清除日期状态缓存 }}
+  /// 清除日期状态缓存
+  void _clearCache() {
+    _dayEventsCache.clear();
+    _dayColorCache.clear();
   }
 
   /// 异步加载预测数据
@@ -164,7 +203,16 @@ class CalendarController extends GetxController {
   }
 
   /// 获取指定日期的所有事件
+  ///
+  /// {{ AURA: Modify - 添加缓存机制，避免重复计算 }}
   List<String> getEventsForDay(DateTime day) {
+    final dateKey = DateCalculator.formatDate(day);
+
+    // 检查缓存
+    if (_dayEventsCache.containsKey(dateKey)) {
+      return _dayEventsCache[dateKey]!;
+    }
+
     final events = <String>[];
 
     // 检查是否是经期
@@ -196,6 +244,9 @@ class CalendarController extends GetxController {
     if (hasDailyRecord(day)) {
       events.add('has_record');
     }
+
+    // 缓存结果
+    _dayEventsCache[dateKey] = events;
 
     return events;
   }
@@ -285,19 +336,35 @@ class CalendarController extends GetxController {
   }
 
   /// 获取日期显示颜色
+  ///
+  /// {{ AURA: Modify - 添加缓存机制，避免重复计算 }}
   Color getDayColor(DateTime day) {
-    if (isPeriodDay(day)) {
-      return const Color(0xFFE91E63); // 经期 - 粉红色
-    } else if (isPredictedPeriodDay(day)) {
-      return const Color(0xFFE91E63).withValues(alpha: 0.5); // 预测经期 - 半透明粉红
-    } else if (isOvulationDay(day) || isPredictedOvulationDay(day)) {
-      return const Color(0xFF4CAF50); // 排卵期 - 绿色
-    } else if (isFertileDay(day)) {
-      return const Color(0xFF81C784); // 易孕期 - 浅绿色
-    } else if (isSafeDay(day)) {
-      return const Color(0xFF2196F3); // 安全期 - 蓝色
+    final dateKey = DateCalculator.formatDate(day);
+
+    // 检查缓存
+    if (_dayColorCache.containsKey(dateKey)) {
+      return _dayColorCache[dateKey]!;
     }
-    return Colors.grey; // 无数据
+
+    Color color;
+    if (isPeriodDay(day)) {
+      color = const Color(0xFFE91E63); // 经期 - 粉红色
+    } else if (isPredictedPeriodDay(day)) {
+      color = const Color(0xFFE91E63).withValues(alpha: 0.5); // 预测经期 - 半透明粉红
+    } else if (isOvulationDay(day) || isPredictedOvulationDay(day)) {
+      color = const Color(0xFF4CAF50); // 排卵期 - 绿色
+    } else if (isFertileDay(day)) {
+      color = const Color(0xFF81C784); // 易孕期 - 浅绿色
+    } else if (isSafeDay(day)) {
+      color = const Color(0xFF2196F3); // 安全期 - 蓝色
+    } else {
+      color = Colors.grey; // 无数据
+    }
+
+    // 缓存结果
+    _dayColorCache[dateKey] = color;
+
+    return color;
   }
 
   /// 获取日期标记样式

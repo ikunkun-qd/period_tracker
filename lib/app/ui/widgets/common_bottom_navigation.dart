@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../theme/app_theme.dart';
 import '../../modules/home/home_controller.dart';
 
 /// 公共底部导航栏组件
+///
+/// {{ AURA: Modify - 移除震动反馈，优化切换性能 }}
 class CommonBottomNavigation extends StatelessWidget {
   const CommonBottomNavigation({super.key});
 
@@ -17,14 +18,16 @@ class CommonBottomNavigation extends StatelessWidget {
       () => BottomNavigationBar(
         currentIndex: homeController.currentIndex.value,
         onTap: (index) {
-          // 添加触觉反馈
-          HapticFeedback.lightImpact();
+          // {{ AURA: Remove - 移除震动反馈，避免不必要的触觉反馈 }}
+          // HapticFeedback.lightImpact();
           homeController.changeTabIndex(index);
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryColor,
         unselectedItemColor: Colors.grey,
         elevation: 8,
+        // {{ AURA: Add - 禁用默认动画，减少卡顿 }}
+        enableFeedback: false,
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),

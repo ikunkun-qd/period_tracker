@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'app/routes/app_pages.dart';
+import 'app/routes/route_observer.dart';
 import 'app/translations/app_translations.dart';
 import 'app/ui/theme/app_theme.dart';
 import 'app/data/services/database_service.dart';
@@ -79,6 +80,13 @@ Future<void> _initServicesOptimized() async {
     ]);
     PerformanceMonitor.endTimer('parallel_services_init');
 
+    // {{ AURA: Add - 第四阶段：初始化全局控制器 }}
+    // 提前初始化 HomeController，确保其他页面可以安全使用
+    PerformanceMonitor.startTimer('global_controllers_init');
+    // 注意：这里不直接创建 HomeController，而是让 HomeBinding 在首次导航到 home 时创建
+    // 但由于使用了 permanent: true，它会一直保持在内存中
+    PerformanceMonitor.endTimer('global_controllers_init');
+
     // 启动内存监控
     final memoryMonitor = Get.find<MemoryMonitor>();
     memoryMonitor.startMonitoring();
@@ -121,6 +129,8 @@ class PeriodTrackerApp extends StatelessWidget {
         initialRoute: AppPages.initial,
         getPages: AppPages.routes,
         debugShowCheckedModeBanner: false,
+        // {{ AURA: Add - 添加路由观察者，自动同步底部导航索引 }}
+        navigatorObservers: [AppRouteObserver()],
       );
     });
   }

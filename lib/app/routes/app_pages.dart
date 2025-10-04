@@ -15,6 +15,8 @@ import '../modules/splash/splash_page.dart';
 part 'app_routes.dart';
 
 /// 应用页面配置
+///
+/// {{ AURA: Modify - 添加页面过渡动画优化，减少切换卡顿 }}
 class AppPages {
   AppPages._();
 
@@ -22,14 +24,41 @@ class AppPages {
 
   static final routes = [
     GetPage(name: _Paths.splash, page: () => const SplashPage(), binding: SplashBinding()),
-    GetPage(name: _Paths.home, page: () => const HomePage(), binding: HomeBinding()),
-    GetPage(name: _Paths.calendar, page: () => const CalendarPage(), binding: CalendarBinding()),
-    GetPage(name: _Paths.record, page: () => const RecordPage(), binding: RecordBinding()),
+    GetPage(
+      name: _Paths.home,
+      page: () => const HomePage(),
+      binding: HomeBinding(),
+      // {{ AURA: Add - 禁用过渡动画，提升切换速度 }}
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
+    ),
+    GetPage(
+      name: _Paths.calendar,
+      page: () => const CalendarPage(),
+      binding: CalendarBinding(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
+    ),
+    GetPage(
+      name: _Paths.record,
+      page: () => const RecordPage(),
+      binding: RecordBinding(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
+    ),
     GetPage(
       name: _Paths.statistics,
       page: () => const StatisticsPage(),
       binding: StatisticsBinding(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
-    GetPage(name: _Paths.settings, page: () => const SettingsPage(), binding: SettingsBinding()),
+    GetPage(
+      name: _Paths.settings,
+      page: () => const SettingsPage(),
+      binding: SettingsBinding(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
+    ),
   ];
 }

@@ -83,6 +83,7 @@ class StatisticsPage extends GetView<StatisticsController> {
     );
   }
 
+  /// {{ AURA: Modify - 添加RepaintBoundary隔离图表重绘，优化性能 }}
   Widget _buildCycleChart() {
     return Card(
       child: Padding(
@@ -95,58 +96,60 @@ class StatisticsPage extends GetView<StatisticsController> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: Obx(
-                () => LineChart(
-                  LineChartData(
-                    gridData: const FlGridData(show: true),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          getTitlesWidget: (value, meta) {
-                            return Text('${value.toInt()}');
-                          },
+            RepaintBoundary(
+              child: SizedBox(
+                height: 200,
+                child: Obx(
+                  () => LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: true),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              return Text('${value.toInt()}');
+                            },
+                          ),
                         ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          interval: 1,
-                          getTitlesWidget: (value, meta) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                'month_number'.trParams({'month': '${value.toInt() + 1}'}),
-                                style: const TextStyle(fontSize: 10),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.visible,
-                              ),
-                            );
-                          },
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  'month_number'.trParams({'month': '${value.toInt() + 1}'}),
+                                  style: const TextStyle(fontSize: 10),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              );
+                            },
+                          ),
                         ),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                       ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      borderData: FlBorderData(show: true),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: controller.cycleData.asMap().entries.map((entry) {
+                            return FlSpot(entry.key.toDouble(), entry.value.toDouble());
+                          }).toList(),
+                          isCurved: true,
+                          color: AppTheme.primaryColor,
+                          barWidth: 3,
+                          dotData: const FlDotData(show: true),
+                        ),
+                      ],
+                      minY: 20,
+                      maxY: 35,
                     ),
-                    borderData: FlBorderData(show: true),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: controller.cycleData.asMap().entries.map((entry) {
-                          return FlSpot(entry.key.toDouble(), entry.value.toDouble());
-                        }).toList(),
-                        isCurved: true,
-                        color: AppTheme.primaryColor,
-                        barWidth: 3,
-                        dotData: const FlDotData(show: true),
-                      ),
-                    ],
-                    minY: 20,
-                    maxY: 35,
                   ),
                 ),
               ),
@@ -157,6 +160,7 @@ class StatisticsPage extends GetView<StatisticsController> {
     );
   }
 
+  /// {{ AURA: Modify - 添加RepaintBoundary隔离图表重绘 }}
   Widget _buildSymptomsChart() {
     return Card(
       child: Padding(
@@ -169,76 +173,78 @@ class StatisticsPage extends GetView<StatisticsController> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: Obx(
-                () => BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: controller.symptomsData.values.isNotEmpty
-                        ? controller.symptomsData.values
-                                  .reduce((a, b) => a > b ? a : b)
-                                  .toDouble() +
-                              5
-                        : 20,
-                    barTouchData: BarTouchData(enabled: false),
-                    titlesData: FlTitlesData(
-                      show: true,
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 50,
-                          interval: 1,
-                          getTitlesWidget: (value, meta) {
-                            final symptoms = controller.symptomsData.keys.toList();
-                            if (value.toInt() < symptoms.length) {
-                              return Container(
-                                width: 40,
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  symptoms[value.toInt()].tr,
-                                  style: const TextStyle(fontSize: 9),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              );
-                            }
-                            return const Text('');
-                          },
-                        ),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          getTitlesWidget: (value, meta) {
-                            return Text('${value.toInt()}');
-                          },
-                        ),
-                      ),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    barGroups: controller.symptomsData.entries.toList().asMap().entries.map((
-                      entry,
-                    ) {
-                      return BarChartGroupData(
-                        x: entry.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: entry.value.value.toDouble(),
-                            color: AppTheme.secondaryColor,
-                            width: 20,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(4),
-                              topRight: Radius.circular(4),
-                            ),
+            RepaintBoundary(
+              child: SizedBox(
+                height: 250,
+                child: Obx(
+                  () => BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: controller.symptomsData.values.isNotEmpty
+                          ? controller.symptomsData.values
+                                    .reduce((a, b) => a > b ? a : b)
+                                    .toDouble() +
+                                5
+                          : 20,
+                      barTouchData: BarTouchData(enabled: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 50,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final symptoms = controller.symptomsData.keys.toList();
+                              if (value.toInt() < symptoms.length) {
+                                return Container(
+                                  width: 40,
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    symptoms[value.toInt()].tr,
+                                    style: const TextStyle(fontSize: 9),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }
+                              return const Text('');
+                            },
                           ),
-                        ],
-                      );
-                    }).toList(),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              return Text('${value.toInt()}');
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      barGroups: controller.symptomsData.entries.toList().asMap().entries.map((
+                        entry,
+                      ) {
+                        return BarChartGroupData(
+                          x: entry.key,
+                          barRods: [
+                            BarChartRodData(
+                              toY: entry.value.value.toDouble(),
+                              color: AppTheme.secondaryColor,
+                              width: 20,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
