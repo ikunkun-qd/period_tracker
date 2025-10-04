@@ -14,7 +14,9 @@ class HomePage extends GetView<HomeController> {
     return Scaffold(
       appBar: AppBar(
         title: Text('home_title'.tr),
-        backgroundColor: AppTheme.primaryColor,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+        ),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -93,110 +95,125 @@ class HomePage extends GetView<HomeController> {
         );
       }
 
-      // {{ AURA: Modify - 使用RepaintBoundary隔离卡片重绘 }}
+      // {{ AURA: Modify - 使用RepaintBoundary隔离卡片重绘 + 渐变边框效果 }}
       return RepaintBoundary(
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Obx(
-                      () => Text(
-                        controller.isOnPeriod.value ? 'current_period'.tr : 'next_period'.tr,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: controller.currentPhaseColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: controller.currentPhaseColor.withValues(alpha: 0.3),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Obx(
+                        () => Text(
+                          controller.isOnPeriod.value ? 'current_period'.tr : 'next_period'.tr,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: Obx(
-                        () => Text(
-                          controller.currentPhaseText,
-                          style: TextStyle(
-                            color: controller.currentPhaseColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: controller.currentPhaseColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: controller.currentPhaseColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Obx(
+                          () => Text(
+                            controller.currentPhaseText,
+                            style: TextStyle(
+                              color: controller.currentPhaseColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Obx(
-                        () => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (controller.isOnPeriod.value) ...[
-                              Text(
-                                'day_x'.trParams({'day': '${controller.currentCycleDay.value}'}),
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Obx(
+                          () => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (controller.isOnPeriod.value) ...[
+                                Text(
+                                  'day_x'.trParams({'day': '${controller.currentCycleDay.value}'}),
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'period_in_progress'.tr,
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                              ),
-                            ] else ...[
-                              Text(
-                                controller.daysUntilNextPeriod.value <= 0
-                                    ? 'today'.tr
-                                    : DateFormatter.formatCountdown(
-                                        controller.daysUntilNextPeriod.value,
-                                      ),
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                                const SizedBox(height: 5),
+                                Text(
+                                  'period_in_progress'.tr,
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                                 ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'cycle_day'.trParams({
-                                  'day': '${controller.currentCycleDay.value}',
-                                }),
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                              ),
+                              ] else ...[
+                                Text(
+                                  controller.daysUntilNextPeriod.value <= 0
+                                      ? 'today'.tr
+                                      : DateFormatter.formatCountdown(
+                                          controller.daysUntilNextPeriod.value,
+                                        ),
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'cycle_day'.trParams({
+                                    'day': '${controller.currentCycleDay.value}',
+                                  }),
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: controller.currentPhaseColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: Obx(
-                        () => Icon(
-                          controller.isOnPeriod.value ? Icons.water_drop : Icons.calendar_today,
-                          size: 40,
-                          color: controller.currentPhaseColor,
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: controller.currentPhaseColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                        child: Obx(
+                          () => Icon(
+                            controller.isOnPeriod.value ? Icons.water_drop : Icons.calendar_today,
+                            size: 40,
+                            color: controller.currentPhaseColor,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -226,15 +243,40 @@ class HomePage extends GetView<HomeController> {
                   return Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: controller.quickEndPeriod,
-                          icon: const Icon(Icons.stop_circle),
-                          label: Text('end_period'.tr),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: controller.quickEndPeriod,
+                            borderRadius: BorderRadius.circular(15),
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFEF5350), Color(0xFFE53935)],
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.red.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.stop_circle, color: Colors.white),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'end_period'.tr,
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -261,16 +303,37 @@ class HomePage extends GetView<HomeController> {
                       Row(
                         children: [
                           Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: controller.quickStartPeriod,
-                              icon: const Icon(Icons.play_circle),
-                              label: Text('start_period'.tr),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: controller.quickStartPeriod,
+                                borderRadius: BorderRadius.circular(20),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.primaryGradient,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.play_circle, color: Colors.white),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'start_period'.tr,
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -328,7 +391,7 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  /// 构建快速操作按钮
+  /// 构建快速操作按钮 - 添加渐变效果和点击动画
   Widget _buildQuickActionButton({
     required IconData icon,
     required String label,
@@ -337,20 +400,35 @@ class HomePage extends GetView<HomeController> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(25),
+      child: AnimatedScale(
+        scale: 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: Column(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color.withValues(alpha: 0.8), color.withValues(alpha: 0.6)],
+                ),
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, size: 25, color: Colors.white),
             ),
-            child: Icon(icon, size: 25, color: color),
-          ),
-          const SizedBox(height: 6),
-          Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
-        ],
+            const SizedBox(height: 6),
+            Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }

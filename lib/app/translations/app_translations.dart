@@ -261,6 +261,7 @@ class AppTranslations extends Translations {
       'save_record': '保存记录',
       'max_symptoms_limit': '最多只能选择10个症状',
       'notes_length_limit': '笔记内容不能超过200个字符',
+      'notes': '备注',
 
       // 症状选项
       'symptom_cramps': '痉挛',
@@ -629,6 +630,7 @@ class AppTranslations extends Translations {
       'save_record': 'Save Record',
       'max_symptoms_limit': 'Maximum 10 symptoms can be selected',
       'notes_length_limit': 'Notes cannot exceed 200 characters',
+      'notes': 'Notes',
 
       // 症状选项
       'symptom_cramps': 'Cramps',

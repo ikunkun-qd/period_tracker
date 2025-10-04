@@ -1,21 +1,65 @@
 import 'package:flutter/material.dart';
 
-/// 应用主题配置
+/// 应用主题配置 - 蓝绿渐变色系
 class AppTheme {
   AppTheme._();
 
-  // 主色调
-  static const Color primaryColor = Color(0xFFE91E63); // 粉红色
-  static const Color primaryVariant = Color(0xFFC2185B);
-  static const Color secondaryColor = Color(0xFF9C27B0); // 紫色
-  static const Color secondaryVariant = Color(0xFF7B1FA2);
+  // 主色调 - 青色系
+  static const Color primaryColor = Color(0xFF00BCD4); // 青色
+  static const Color primaryVariant = Color(0xFF0097A7); // 深青色
+  static const Color secondaryColor = Color(0xFF4CAF50); // 绿色
+  static const Color secondaryVariant = Color(0xFF388E3C); // 深绿色
 
-  // 功能色彩
-  static const Color periodColor = Color(0xFFE91E63); // 经期 - 粉红色
+  // 渐变色定义
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00BCD4), Color(0xFF0097A7)],
+  );
+
+  static const LinearGradient secondaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+  );
+
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00BCD4), Color(0xFF4CAF50)],
+  );
+
+  // 功能色彩 - 蓝绿色系
+  static const Color periodColor = Color(0xFF00BCD4); // 经期 - 青色
   static const Color ovulationColor = Color(0xFF4CAF50); // 排卵期 - 绿色
   static const Color fertileColor = Color(0xFF81C784); // 易孕期 - 浅绿色
   static const Color safeColor = Color(0xFF2196F3); // 安全期 - 蓝色
-  static const Color pmsColor = Color(0xFFFF9800); // PMS期 - 橙色
+  static const Color pmsColor = Color(0xFF00ACC1); // PMS期 - 青蓝色
+
+  // 功能渐变色
+  static const LinearGradient periodGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00BCD4), Color(0xFF0288D1)],
+  );
+
+  static const LinearGradient ovulationGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+  );
+
+  static const LinearGradient fertileGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF81C784), Color(0xFFA5D6A7)],
+  );
+
+  static const LinearGradient safeGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF2196F3), Color(0xFF42A5F5)],
+  );
 
   // 流量等级颜色
   static const Color flowLight = Color(0xFFFFCDD2);
@@ -50,9 +94,10 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      cardTheme: const CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+      cardTheme: CardThemeData(
+        elevation: 4,
+        shadowColor: primaryColor.withValues(alpha: 0.1),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

@@ -96,15 +96,25 @@ class ErrorHandler {
     return error.toString();
   }
 
-  /// 显示成功消息
+  /// 显示成功消息 - 使用主题渐变色
   static void showSuccess(String message) {
     Get.snackbar(
       'success'.tr,
       message,
-      backgroundColor: Colors.green,
+      backgroundColor: const Color(0xFF00BCD4), // 使用主题青色
       colorText: Colors.white,
       icon: const Icon(Icons.check_circle, color: Colors.white),
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      boxShadows: [
+        BoxShadow(
+          color: const Color(0xFF00BCD4).withValues(alpha: 0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 
@@ -116,7 +126,17 @@ class ErrorHandler {
       backgroundColor: Colors.orange,
       colorText: Colors.white,
       icon: const Icon(Icons.warning, color: Colors.white),
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 3),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      boxShadows: [
+        BoxShadow(
+          color: Colors.orange.withValues(alpha: 0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 
@@ -125,10 +145,20 @@ class ErrorHandler {
     Get.snackbar(
       'info'.tr,
       message,
-      backgroundColor: Colors.blue,
+      backgroundColor: const Color(0xFF00BCD4), // 使用主题青色
       colorText: Colors.white,
       icon: const Icon(Icons.info, color: Colors.white),
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      boxShadows: [
+        BoxShadow(
+          color: const Color(0xFF00BCD4).withValues(alpha: 0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 
@@ -137,10 +167,20 @@ class ErrorHandler {
     Get.snackbar(
       'error'.tr,
       message,
-      backgroundColor: Colors.red,
+      backgroundColor: const Color(0xFFEF5350), // 使用柔和的红色
       colorText: Colors.white,
       icon: const Icon(Icons.error, color: Colors.white),
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      boxShadows: [
+        BoxShadow(
+          color: const Color(0xFFEF5350).withValues(alpha: 0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 

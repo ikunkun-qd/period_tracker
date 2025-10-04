@@ -12,7 +12,9 @@ class RecordPage extends GetView<RecordController> {
     return Scaffold(
       appBar: AppBar(
         title: Text('record_title'.tr),
-        backgroundColor: AppTheme.primaryColor,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+        ),
         foregroundColor: Colors.white,
         actions: [
           TextButton(
@@ -78,10 +80,20 @@ class RecordPage extends GetView<RecordController> {
                 ],
               ),
               const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: controller.completionPercentage / 100,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+              Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.grey[300],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: controller.completionPercentage / 100,
+                    backgroundColor: Colors.transparent,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  ),
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -175,14 +187,27 @@ class RecordPage extends GetView<RecordController> {
                       child: GestureDetector(
                         onTap: () => controller.updateFlowLevel(index + 1),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppTheme.primaryColor : Colors.grey[100],
+                            gradient: isSelected
+                                ? LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppTheme.primaryColor.withValues(alpha: 0.15),
+                                      AppTheme.secondaryColor.withValues(alpha: 0.12),
+                                    ],
+                                  )
+                                : null,
+                            color: isSelected ? null : Colors.grey[100],
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
-                              width: isSelected ? 2 : 1,
+                              color: isSelected
+                                  ? AppTheme.primaryColor.withValues(alpha: 0.4)
+                                  : Colors.grey[300]!,
+                              width: isSelected ? 1.5 : 1,
                             ),
                           ),
                           child: Row(
@@ -196,14 +221,16 @@ class RecordPage extends GetView<RecordController> {
                                     Text(
                                       level['name']!,
                                       style: TextStyle(
-                                        color: isSelected ? Colors.white : Colors.black87,
+                                        color: isSelected ? AppTheme.primaryColor : Colors.black87,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
                                       level['desc']!,
                                       style: TextStyle(
-                                        color: isSelected ? Colors.white70 : Colors.grey[600],
+                                        color: isSelected
+                                            ? AppTheme.primaryColor.withValues(alpha: 0.7)
+                                            : Colors.grey[600],
                                         fontSize: 12,
                                       ),
                                     ),
@@ -211,7 +238,7 @@ class RecordPage extends GetView<RecordController> {
                                 ),
                               ),
                               if (isSelected)
-                                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
                             ],
                           ),
                         ),
@@ -281,22 +308,37 @@ class RecordPage extends GetView<RecordController> {
             Obx(
               () => Column(
                 children: [
-                  SliderTheme(
-                    data: SliderTheme.of(Get.context!).copyWith(
-                      activeTrackColor: getPainColor(controller.painLevel.value),
-                      inactiveTrackColor: Colors.grey[300],
-                      thumbColor: getPainColor(controller.painLevel.value),
-                      overlayColor: getPainColor(controller.painLevel.value).withValues(alpha: 0.2),
-                      valueIndicatorColor: getPainColor(controller.painLevel.value),
-                      valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: getPainColor(controller.painLevel.value).withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Slider(
-                      value: controller.painLevel.value.toDouble(),
-                      min: 0,
-                      max: 10,
-                      divisions: 10,
-                      label: controller.painLevel.value.toString(),
-                      onChanged: (value) => controller.updatePainLevel(value.toInt()),
+                    child: SliderTheme(
+                      data: SliderTheme.of(Get.context!).copyWith(
+                        activeTrackColor: getPainColor(controller.painLevel.value),
+                        inactiveTrackColor: Colors.grey[300],
+                        thumbColor: getPainColor(controller.painLevel.value),
+                        overlayColor: getPainColor(
+                          controller.painLevel.value,
+                        ).withValues(alpha: 0.2),
+                        valueIndicatorColor: getPainColor(controller.painLevel.value),
+                        valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+                        trackHeight: 6,
+                      ),
+                      child: Slider(
+                        value: controller.painLevel.value.toDouble(),
+                        min: 0,
+                        max: 10,
+                        divisions: 10,
+                        label: controller.painLevel.value.toString(),
+                        onChanged: (value) => controller.updatePainLevel(value.toInt()),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -371,24 +413,28 @@ class RecordPage extends GetView<RecordController> {
                   return GestureDetector(
                     onTap: () => controller.updateMood(index + 1),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isSelected ? mood['color'] as Color : Colors.grey[100],
+                        gradient: isSelected
+                            ? LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  (mood['color'] as Color).withValues(alpha: 0.15),
+                                  (mood['color'] as Color).withValues(alpha: 0.1),
+                                ],
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.grey[100],
                         borderRadius: BorderRadius.circular(50),
                         border: Border.all(
-                          color: isSelected ? mood['color'] as Color : Colors.grey[300]!,
-                          width: isSelected ? 2 : 1,
+                          color: isSelected
+                              ? (mood['color'] as Color).withValues(alpha: 0.4)
+                              : Colors.grey[300]!,
+                          width: isSelected ? 1.5 : 1,
                         ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: (mood['color'] as Color).withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                            : null,
                       ),
                       child: Column(
                         children: [
@@ -401,8 +447,8 @@ class RecordPage extends GetView<RecordController> {
                             mood['name'] as String,
                             style: TextStyle(
                               fontSize: 10,
-                              color: isSelected ? Colors.white : Colors.grey[600],
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? mood['color'] as Color : Colors.grey[600],
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -469,23 +515,41 @@ class RecordPage extends GetView<RecordController> {
                     runSpacing: 4,
                     children: symptomsList.map((symptom) {
                       final isSelected = controller.symptoms.contains(symptom);
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        child: FilterChip(
-                          label: Text(
+                      // {{ AURA: Fix - 使用浅色渐变效果,平滑简洁 }}
+                      return GestureDetector(
+                        onTap: () => controller.toggleSymptom(symptom),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: isSelected
+                                ? LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppTheme.primaryColor.withValues(alpha: 0.15),
+                                      AppTheme.secondaryColor.withValues(alpha: 0.12),
+                                    ],
+                                  )
+                                : null,
+                            color: isSelected ? null : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(16),
+                            border: isSelected
+                                ? Border.all(
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                    width: 1,
+                                  )
+                                : null,
+                          ),
+                          child: Text(
                             symptom,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isSelected ? Colors.white : Colors.black87,
+                              color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                           ),
-                          selected: isSelected,
-                          onSelected: (_) => controller.toggleSymptom(symptom),
-                          selectedColor: AppTheme.primaryColor,
-                          backgroundColor: Colors.grey[100],
-                          checkmarkColor: Colors.white,
-                          elevation: isSelected ? 2 : 0,
-                          pressElevation: 4,
                         ),
                       );
                     }).toList(),
@@ -567,19 +631,76 @@ class RecordPage extends GetView<RecordController> {
     );
   }
 
+  /// 构建快速笔记标签
+  ///
+  /// {{ AURA: Fix - 防止重复添加相同的标签，使用简洁的渐变效果 }}
   Widget _buildQuickNoteChip(String text) {
-    return ActionChip(
-      label: Text(text, style: const TextStyle(fontSize: 12)),
-      onPressed: () {
-        final currentNotes = controller.notes.value;
-        final newNotes = currentNotes.isEmpty ? text : '$currentNotes, $text';
-        if (newNotes.length <= 200) {
-          controller.updateNotes(newNotes);
-        }
-      },
-      backgroundColor: Colors.grey[100],
-      side: BorderSide(color: Colors.grey[300]!),
-    );
+    return Obx(() {
+      final currentNotes = controller.notes.value;
+      // 检查当前笔记中是否已包含该标签
+      final isSelected = currentNotes.contains(text);
+
+      return GestureDetector(
+        onTap: () {
+          // {{ AURA: Fix - 如果已选中，则移除；否则添加 }}
+          if (isSelected) {
+            // 移除该标签
+            String newNotes = currentNotes;
+            // 处理各种情况：开头、中间、结尾
+            if (newNotes == text) {
+              // 只有这一个标签
+              newNotes = '';
+            } else if (newNotes.startsWith('$text, ')) {
+              // 在开头
+              newNotes = newNotes.replaceFirst('$text, ', '');
+            } else if (newNotes.endsWith(', $text')) {
+              // 在结尾
+              newNotes = newNotes.substring(0, newNotes.length - text.length - 2);
+            } else {
+              // 在中间
+              newNotes = newNotes.replaceAll(', $text', '');
+            }
+            controller.updateNotes(newNotes);
+          } else {
+            // 添加该标签
+            final newNotes = currentNotes.isEmpty ? text : '$currentNotes, $text';
+            if (newNotes.length <= 200) {
+              controller.updateNotes(newNotes);
+            }
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.15),
+                      AppTheme.secondaryColor.withValues(alpha: 0.12),
+                    ],
+                  )
+                : null,
+            color: isSelected ? null : Colors.grey[100],
+            borderRadius: BorderRadius.circular(16),
+            border: isSelected
+                ? Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3), width: 1)
+                : null,
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected ? AppTheme.primaryColor : Colors.grey[700],
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildActionButtons() {
@@ -600,21 +721,37 @@ class RecordPage extends GetView<RecordController> {
         Expanded(
           flex: 2,
           child: Obx(
-            () => ElevatedButton.icon(
-              onPressed: controller.isLoading.value ? null : controller.saveRecord,
-              icon: controller.isLoading.value
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(controller.isLoading.value ? 'saving'.tr : 'save_record'.tr),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                elevation: 2,
+            () => Container(
+              decoration: BoxDecoration(
+                gradient: controller.isLoading.value ? null : AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: controller.isLoading.value
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: controller.isLoading.value ? null : controller.saveRecord,
+                icon: controller.isLoading.value
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.save),
+                label: Text(controller.isLoading.value ? 'saving'.tr : 'save_record'.tr),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: controller.isLoading.value ? Colors.grey : Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: 0,
+                ),
               ),
             ),
           ),

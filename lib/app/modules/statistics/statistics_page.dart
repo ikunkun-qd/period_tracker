@@ -13,7 +13,9 @@ class StatisticsPage extends GetView<StatisticsController> {
     return Scaffold(
       appBar: AppBar(
         title: Text('statistics_title'.tr),
-        backgroundColor: AppTheme.primaryColor,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -40,12 +42,28 @@ class StatisticsPage extends GetView<StatisticsController> {
       children: [
         Expanded(
           child: Card(
+            elevation: 6,
+            shadowColor: AppTheme.primaryColor.withValues(alpha: 0.2),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Icon(Icons.calendar_today, color: AppTheme.primaryColor, size: 32),
-                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.calendar_today, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 12),
                   Obx(
                     () => Text(
                       'days_count'.trParams({'count': '${controller.averageCycleLength.value}'}),
@@ -61,12 +79,28 @@ class StatisticsPage extends GetView<StatisticsController> {
         const SizedBox(width: 16),
         Expanded(
           child: Card(
+            elevation: 6,
+            shadowColor: AppTheme.secondaryColor.withValues(alpha: 0.2),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Icon(Icons.water_drop, color: AppTheme.periodColor, size: 32),
-                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.secondaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.secondaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.water_drop, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 12),
                   Obx(
                     () => Text(
                       'days_count'.trParams({'count': '${controller.averagePeriodLength.value}'}),
@@ -142,9 +176,30 @@ class StatisticsPage extends GetView<StatisticsController> {
                             return FlSpot(entry.key.toDouble(), entry.value.toDouble());
                           }).toList(),
                           isCurved: true,
-                          color: AppTheme.primaryColor,
-                          barWidth: 3,
-                          dotData: const FlDotData(show: true),
+                          gradient: AppTheme.primaryGradient,
+                          barWidth: 4,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: 4,
+                                color: AppTheme.primaryColor,
+                                strokeWidth: 2,
+                                strokeColor: Colors.white,
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppTheme.primaryColor.withValues(alpha: 0.3),
+                                AppTheme.primaryColor.withValues(alpha: 0.05),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                       minY: 20,
@@ -234,11 +289,11 @@ class StatisticsPage extends GetView<StatisticsController> {
                           barRods: [
                             BarChartRodData(
                               toY: entry.value.value.toDouble(),
-                              color: AppTheme.secondaryColor,
-                              width: 20,
+                              gradient: AppTheme.secondaryGradient,
+                              width: 24,
                               borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(4),
-                                topRight: Radius.circular(4),
+                                topLeft: Radius.circular(6),
+                                topRight: Radius.circular(6),
                               ),
                             ),
                           ],
@@ -297,10 +352,17 @@ class StatisticsPage extends GetView<StatisticsController> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    gradient: AppTheme.accentGradient,
                     borderRadius: BorderRadius.circular(40),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.analytics, size: 40, color: AppTheme.primaryColor),
+                  child: const Icon(Icons.analytics, size: 40, color: Colors.white),
                 ),
               ],
             ),
