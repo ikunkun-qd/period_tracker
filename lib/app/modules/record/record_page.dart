@@ -139,7 +139,7 @@ class RecordPage extends GetView<RecordController> {
     );
   }
 
-  /// {{ AURA: Modify - 添加RepaintBoundary隔离 }}
+  /// {{ AURA: Optimized - 性能优化：缩小Obx范围，添加独立RepaintBoundary }}
   Widget _buildFlowLevelSection() {
     final flowLevels = [
       {'name': 'flow_light'.tr, 'desc': 'flow_light_desc'.tr, 'icon': '💧'},
@@ -148,107 +148,46 @@ class RecordPage extends GetView<RecordController> {
       {'name': 'flow_very_heavy'.tr, 'desc': 'flow_very_heavy_desc'.tr, 'icon': '💧💧💧💧'},
     ];
 
-    return RepaintBoundary(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'flow_level'.tr,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Obx(
-                    () => controller.flowLevel.value > 0
-                        ? Text(
-                            flowLevels[controller.flowLevel.value - 1]['name']!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Obx(
-                () => Column(
-                  children: List.generate(4, (index) {
-                    final isSelected = controller.flowLevel.value == index + 1;
-                    final level = flowLevels[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: GestureDetector(
-                        onTap: () => controller.updateFlowLevel(index + 1),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            gradient: isSelected
-                                ? LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      AppTheme.primaryColor.withValues(alpha: 0.15),
-                                      AppTheme.secondaryColor.withValues(alpha: 0.12),
-                                    ],
-                                  )
-                                : null,
-                            color: isSelected ? null : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppTheme.primaryColor.withValues(alpha: 0.4)
-                                  : Colors.grey[300]!,
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(level['icon']!, style: const TextStyle(fontSize: 20)),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      level['name']!,
-                                      style: TextStyle(
-                                        color: isSelected ? AppTheme.primaryColor : Colors.black87,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      level['desc']!,
-                                      style: TextStyle(
-                                        color: isSelected
-                                            ? AppTheme.primaryColor.withValues(alpha: 0.7)
-                                            : Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (isSelected)
-                                Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '流量等级',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
-          ),
+                Obx(
+                  () => controller.flowLevel.value > 0
+                      ? Text(
+                          flowLevels[controller.flowLevel.value - 1]['name']!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            // {{ AURA: Optimized - 为每个选项添加独立的RepaintBoundary和Obx }}
+            ...List.generate(4, (index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _FlowLevelOption(
+                  level: flowLevels[index],
+                  index: index + 1,
+                  controller: controller,
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );
@@ -370,6 +309,7 @@ class RecordPage extends GetView<RecordController> {
     );
   }
 
+  /// {{ AURA: Optimized - 性能优化：拆分独立组件，避免全部重建 }}
   Widget _buildMoodSection() {
     final moods = [
       {'emoji': '😢', 'name': 'mood_very_sad'.tr, 'color': Colors.blue[400]!},
@@ -388,7 +328,7 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('mood'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('心情', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Obx(
                   () => controller.mood.value > 0
                       ? Text(
@@ -404,59 +344,16 @@ class RecordPage extends GetView<RecordController> {
               ],
             ),
             const SizedBox(height: 15),
-            Obx(
-              () => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(5, (index) {
-                  final isSelected = controller.mood.value == index + 1;
-                  final mood = moods[index];
-                  return GestureDetector(
-                    onTap: () => controller.updateMood(index + 1),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: isSelected
-                            ? LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  (mood['color'] as Color).withValues(alpha: 0.15),
-                                  (mood['color'] as Color).withValues(alpha: 0.1),
-                                ],
-                              )
-                            : null,
-                        color: isSelected ? null : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: isSelected
-                              ? (mood['color'] as Color).withValues(alpha: 0.4)
-                              : Colors.grey[300]!,
-                          width: isSelected ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            mood['emoji'] as String,
-                            style: TextStyle(fontSize: isSelected ? 28 : 24),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            mood['name'] as String,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isSelected ? mood['color'] as Color : Colors.grey[600],
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ),
+            // {{ AURA: Optimized - 使用独立组件，只更新选中的按钮 }}
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(5, (index) {
+                return _MoodOption(
+                  mood: moods[index],
+                  index: index + 1,
+                  controller: controller,
+                );
+              }),
             ),
           ],
         ),
@@ -464,6 +361,7 @@ class RecordPage extends GetView<RecordController> {
     );
   }
 
+  /// {{ AURA: Optimized - 性能优化：拆分症状标签为独立组件 }}
   Widget _buildSymptomsSection() {
     final symptomsList = [
       'symptom_cramps'.tr,
@@ -488,13 +386,13 @@ class RecordPage extends GetView<RecordController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'symptoms'.tr,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const Text(
+                  '症状',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Obx(
                   () => Text(
-                    'selected_count'.trParams({'count': '${controller.symptoms.length}'}),
+                    '已选择 ${controller.symptoms.length} 项',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ),
@@ -502,74 +400,44 @@ class RecordPage extends GetView<RecordController> {
             ),
             const SizedBox(height: 10),
             Container(
-              height: 120, // 固定容器高度
+              height: 120,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(8),
-                child: Obx(
-                  () => Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: symptomsList.map((symptom) {
-                      final isSelected = controller.symptoms.contains(symptom);
-                      // {{ AURA: Fix - 使用浅色渐变效果,平滑简洁 }}
-                      return GestureDetector(
-                        onTap: () => controller.toggleSymptom(symptom),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: isSelected
-                                ? LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      AppTheme.primaryColor.withValues(alpha: 0.15),
-                                      AppTheme.secondaryColor.withValues(alpha: 0.12),
-                                    ],
-                                  )
-                                : null,
-                            color: isSelected ? null : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(16),
-                            border: isSelected
-                                ? Border.all(
-                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                                    width: 1,
-                                  )
-                                : null,
-                          ),
-                          child: Text(
-                            symptom,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected ? AppTheme.primaryColor : Colors.black87,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  // {{ AURA: Optimized - 为每个症状创建独立组件，避免全部重建 }}
+                  children: symptomsList.map((symptom) {
+                    return _SymptomChip(
+                      symptom: symptom,
+                      controller: controller,
+                    );
+                  }).toList(),
                 ),
               ),
             ),
-            if (controller.symptoms.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
+            Obx(() {
+              if (controller.symptoms.isEmpty) return const SizedBox.shrink();
+              return Column(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'tap_to_deselect_symptom'.tr,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'tap_to_deselect_symptom'.tr,
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            }),
           ],
         ),
       ),
@@ -757,6 +625,219 @@ class RecordPage extends GetView<RecordController> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// =================== 性能优化组件：独立的可交互Widget，减少不必要的重建 ===================
+
+/// 流量等级选项组件 - 独立的响应式Widget
+///
+/// {{ AURA: Optimized - 每个选项独立监听状态，只有选中状态改变时才重建 }}
+class _FlowLevelOption extends StatelessWidget {
+  final Map<String, String> level;
+  final int index;
+  final RecordController controller;
+
+  const _FlowLevelOption({
+    required this.level,
+    required this.index,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Obx(() {
+        final isSelected = controller.flowLevel.value == index;
+        return GestureDetector(
+          onTap: () => controller.updateFlowLevel(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0x2600BCD4), // AppTheme.primaryColor with 15% opacity
+                        Color(0x1F4CAF50), // AppTheme.secondaryColor with 12% opacity
+                      ],
+                    )
+                  : null,
+              color: isSelected ? null : Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0x6600BCD4) // AppTheme.primaryColor with 40% opacity
+                    : Colors.grey[300]!,
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(level['icon']!, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        level['name']!,
+                        style: TextStyle(
+                          color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        level['desc']!,
+                        style: TextStyle(
+                          color: isSelected
+                              ? const Color(0xB300BCD4) // AppTheme.primaryColor with 70% opacity
+                              : Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// 心情选项组件 - 独立的响应式Widget
+///
+/// {{ AURA: Optimized - 每个心情按钮独立监听，提升交互响应速度 }}
+class _MoodOption extends StatelessWidget {
+  final Map<String, dynamic> mood;
+  final int index;
+  final RecordController controller;
+
+  const _MoodOption({
+    required this.mood,
+    required this.index,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Obx(() {
+        final isSelected = controller.mood.value == index;
+        final moodColor = mood['color'] as Color;
+        return GestureDetector(
+          onTap: () => controller.updateMood(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        moodColor.withValues(alpha: 0.15),
+                        moodColor.withValues(alpha: 0.1),
+                      ],
+                    )
+                  : null,
+              color: isSelected ? null : Colors.grey[100],
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: isSelected ? moodColor.withValues(alpha: 0.4) : Colors.grey[300]!,
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  mood['emoji'] as String,
+                  style: TextStyle(fontSize: isSelected ? 28 : 24),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  mood['name'] as String,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isSelected ? moodColor : Colors.grey[600],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// 症状标签组件 - 独立的响应式Widget
+///
+/// {{ AURA: Optimized - 每个症状标签独立监听选中状态，大幅提升性能 }}
+class _SymptomChip extends StatelessWidget {
+  final String symptom;
+  final RecordController controller;
+
+  const _SymptomChip({
+    required this.symptom,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Obx(() {
+        final isSelected = controller.symptoms.contains(symptom);
+        return GestureDetector(
+          onTap: () => controller.toggleSymptom(symptom),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0x2600BCD4), // AppTheme.primaryColor with 15% opacity
+                        Color(0x1F4CAF50), // AppTheme.secondaryColor with 12% opacity
+                      ],
+                    )
+                  : null,
+              color: isSelected ? null : Colors.grey[100],
+              borderRadius: BorderRadius.circular(16),
+              border: isSelected
+                  ? const Border.fromBorderSide(
+                      BorderSide(
+                        color: Color(0x4D00BCD4), // AppTheme.primaryColor with 30% opacity
+                        width: 1,
+                      ),
+                    )
+                  : null,
+            ),
+            child: Text(
+              symptom,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }

@@ -317,8 +317,9 @@ class RecordController extends GetxController {
 
           debugPrint('Record loaded successfully: date=${date.toIso8601String().split('T')[0]}');
         } else {
-          resetData();
-          debugPrint('No record for this date, data has been reset');
+          // 没有记录时，直接重置为初始值，不弹出确认对话框
+          _clearFormFields();
+          debugPrint('No record found for date: ${date.toIso8601String().split('T')[0]}, form cleared');
         }
       },
       errorMessage: 'load_record_failed'.tr,
@@ -326,6 +327,16 @@ class RecordController extends GetxController {
     );
 
     isLoading.value = false;
+  }
+
+  /// 清空表单字段（内部方法，不弹出确认对话框）
+  void _clearFormFields() {
+    flowLevel.value = 0;
+    painLevel.value = 0;
+    mood.value = 0;
+    symptoms.clear();
+    notes.value = '';
+    notesController.clear();
   }
 
   /// 验证数据完整性
